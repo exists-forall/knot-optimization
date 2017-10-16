@@ -110,9 +110,9 @@ impl Problem {
     ) -> Problem {
         let adjacent_symmetry = symmetry::adjacent_symmetry(symmetry_count);
         let radial_angle_normalizer = Vector2::new(
-            last_joint_out.translation.vector.x,
             last_joint_out.translation.vector.y,
-        ).norm()
+            last_joint_out.translation.vector.z,
+        ).norm_squared()
             .recip();
 
         Problem {
