@@ -148,13 +148,17 @@ impl Problem {
     }
 
     /// Perform a single gradient-descent optimization step.
-    pub fn optimize(&self, opt_params: &OptimizationParams, vars: &mut Vars) {
+    /// Returns the squared magnitude of the gradient at the given vars, which external algorithms
+    /// can use to measure convergence.
+    pub fn optimize(&self, opt_params: &OptimizationParams, vars: &mut Vars) -> f64 {
         let differential = vars.differential(
             opt_params.radius_step,
             opt_params.radial_angle_step,
             &|vars| self.cost(vars),
         );
         self.apply_step(vars, &differential.scale(-opt_params.descent_rate));
+        differential.d_radius * differential.d_radius +
+            differential.d_radial_angle * differential.d_radial_angle * self.radial_angle_normalizer
     }
 }
 
