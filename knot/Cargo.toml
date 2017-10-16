@@ -1,0 +1,9 @@
+[package]
+name = "knot"
+version = "0.1.0"
+authors = ["William Brandon"]
+
+[dependencies]
+nalgebra = "0.13.1"
+alga = "0.5.2"
+approx = "0.1.1"
