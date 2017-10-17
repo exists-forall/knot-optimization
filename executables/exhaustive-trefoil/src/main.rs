@@ -10,7 +10,6 @@ extern crate rayon;
 
 extern crate knot;
 
-use std::f64::consts::PI;
 use std::cmp::Ordering;
 use std::fs::File;
 use std::process::exit;
@@ -19,8 +18,9 @@ use std::env::args;
 use nalgebra::Isometry3;
 
 use knot::joint::{JointSpec, at_angles, discrete_angles};
-use knot::cost::{CostParams, Thresholds};
-use knot::symmetry_adjust::{Problem, Vars, OptimizationParams};
+use knot::symmetry_adjust::Problem;
+use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, INITIAL_SYMMETRY_ADJUST,
+                     SYMMETRY_COUNT, joint_spec};
 
 use rayon::prelude::*;
 use rayon::prelude::IntoParallelIterator;
@@ -42,32 +42,9 @@ macro_rules! exhaustive {
     } }
 }
 
-const NUM_ANGLES: u32 = 16;
 const NUM_JOINTS: u32 = 5;
-const SYMMETRY_COUNT: u32 = 3;
-
-const COST_PARAMS: CostParams = CostParams {
-    dist_weight: 5.0,
-    axis_weight: 1.0,
-    locking_weight: 1.0,
-    thresholds: Thresholds {
-        dist_for_axis: 4.0,
-        axis_for_locking: 0.2,
-    },
-};
-
-const OPTIMIZATION_PARAMS: OptimizationParams = OptimizationParams {
-    radius_step: 0.01,
-    radial_angle_step: 0.01,
-    descent_rate: 1.0 / 32.0,
-};
 
 const OPTIMIZATION_STEPS: u32 = 4;
-
-const INITIAL_SYMMETRY_ADJUST: Vars = Vars {
-    radius: 0.0,
-    radial_angle: PI / 2.0,
-};
 
 const KEEP_COUNT: usize = 2048;
 
@@ -119,7 +96,7 @@ fn nan_greatest(a: f64, b: f64) -> Ordering {
 }
 
 fn generate_reports() -> Vec<KnotReport> {
-    let spec = JointSpec::new(1.0, 1.0, PI / 6.0);
+    let spec = joint_spec();
 
     println!("Generating {} knot reports", NUM_ANGLES.pow(NUM_JOINTS));
     let mut reports = exhaustive!(NUM_ANGLES; NUM_JOINTS)

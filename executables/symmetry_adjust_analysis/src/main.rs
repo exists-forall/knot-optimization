@@ -19,8 +19,8 @@ use rand::distributions::{IndependentSample, Normal};
 
 use nalgebra::{Translation3, Unit, UnitQuaternion, Quaternion, Isometry3, Vector3};
 
-use knot::cost::{CostParams, Thresholds};
-use knot::symmetry_adjust::{Problem, Vars, OptimizationParams};
+use knot::symmetry_adjust::{Problem, OptimizationParams};
+use knot::defaults::{COST_PARAMS, NUM_ANGLES, SYMMETRY_COUNT, INITIAL_SYMMETRY_ADJUST};
 
 fn rand_quaternion<R: Rng>(rng: &mut R) -> UnitQuaternion<f64> {
     let dist = Normal::new(0.0, 1.0);
@@ -61,21 +61,8 @@ struct ExperimentReport {
 }
 
 fn run_experiments() -> Vec<Vec<ExperimentReport>> {
-    let cost_params = CostParams {
-        dist_weight: 5.0,
-        axis_weight: 1.0,
-        locking_weight: 1.0,
-        thresholds: Thresholds {
-            dist_for_axis: 4.0,
-            axis_for_locking: 0.2,
-        },
-    };
-
     let radius_step = 0.01;
     let radial_angle_step = 0.01;
-
-    let num_angles = 16;
-    let symmetry_count = 3;
 
     let mut rng = rand::thread_rng();
 
@@ -87,7 +74,7 @@ fn run_experiments() -> Vec<Vec<ExperimentReport>> {
         .map(|problem_i| {
             println!("Simulating problem {}", problem_i);
             let last_joint_out = rand_joint_trans(&mut rng);
-            let problem = Problem::new(cost_params, last_joint_out, num_angles, symmetry_count);
+            let problem = Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, SYMMETRY_COUNT);
             descent_rate_pows
                 .clone()
                 .map(|descent_rate_pow| {
@@ -98,10 +85,7 @@ fn run_experiments() -> Vec<Vec<ExperimentReport>> {
                         radial_angle_step,
                         descent_rate,
                     };
-                    let mut vars = Vars {
-                        radius: 10.0,
-                        radial_angle: 0.0,
-                    };
+                    let mut vars = INITIAL_SYMMETRY_ADJUST;
                     let convergence = (0..descent_steps)
                         .map(|_| problem.optimize(&opt_params, &mut vars))
                         .collect();

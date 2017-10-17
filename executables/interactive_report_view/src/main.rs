@@ -12,7 +12,6 @@ extern crate serde_json;
 extern crate knot;
 extern crate knot_visualize;
 
-use std::f64::consts::PI;
 use std::fs::File;
 use std::process::exit;
 use std::env::args;
@@ -30,6 +29,7 @@ use knot::joint::{JointSpec, discrete_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::symmetry_adjust;
 use knot_visualize::joint_render::add_joints;
+use knot::defaults::{NUM_ANGLES, SYMMETRY_COUNT, joint_spec};
 
 #[derive(Clone, Debug, Deserialize)]
 struct KnotReport {
@@ -93,9 +93,7 @@ fn main() {
     }
     println!("Loaded {} reports", reports.len());
 
-    let spec = JointSpec::new(1.0, 1.0, PI / 6.0);
-    let symmetry_count = 3;
-    let num_angles = 16;
+    let spec = joint_spec();
 
     let mut window = Window::new("Trefoil");
     window.set_light(Light::StickToCamera);
@@ -105,9 +103,9 @@ fn main() {
 
     let mut knot_node = view_report(
         window.scene_mut(),
-        num_angles,
+        NUM_ANGLES,
         &spec,
-        symmetry_count,
+        SYMMETRY_COUNT,
         &reports[report_i],
     );
 
@@ -123,9 +121,9 @@ fn main() {
                                 window.remove(&mut knot_node);
                                 knot_node = view_report(
                                     window.scene_mut(),
-                                    num_angles,
+                                    NUM_ANGLES,
                                     &spec,
-                                    symmetry_count,
+                                    SYMMETRY_COUNT,
                                     &reports[report_i],
                                 );
                                 println!("Viewing report {}", report_i);
@@ -138,9 +136,9 @@ fn main() {
                                 window.remove(&mut knot_node);
                                 knot_node = view_report(
                                     window.scene_mut(),
-                                    num_angles,
+                                    NUM_ANGLES,
                                     &spec,
-                                    symmetry_count,
+                                    SYMMETRY_COUNT,
                                     &reports[report_i],
                                 );
                                 println!("Viewing report {}", report_i);

@@ -7,8 +7,11 @@ extern crate glfw;
 
 extern crate knot;
 extern crate knot_visualize;
+extern crate serde;
+extern crate serde_json;
 
-use std::f64::consts::PI;
+use std::env::args;
+use std::process::exit;
 
 use kiss3d::window::Window;
 use kiss3d::light::Light;
@@ -18,41 +21,36 @@ use glfw::{Action, WindowEvent, Key};
 use nalgebra::{Isometry3, Point3};
 use alga::general::SubsetOf;
 
-use knot::joint::{JointSpec, discrete_angles, at_angles};
-use knot::cost::{CostParams, Thresholds};
+use knot::joint::{discrete_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::symmetry_adjust;
 use knot_visualize::joint_render::add_joints;
+use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, INITIAL_SYMMETRY_ADJUST,
+                     SYMMETRY_COUNT, joint_spec};
 
 fn main() {
-    let spec = JointSpec::new(1.0, 1.0, PI / 6.0);
-    let symmetry_count = 3;
-    let num_angles = 16;
-    let rel_joint_angles = [0, 2, 0, 0, -2];
+    let spec = joint_spec();
+    let rel_joint_angles: Vec<i32> = match args().nth(1) {
+        Some(angles_json) => {
+            serde_json::from_str(&angles_json).unwrap_or_else(|_| {
+                eprintln!("Could not parse angles");
+                exit(1);
+            })
+        }
+        None => vec![0, 0, 0, 2, 0],
+    };
 
     let joint_transforms = at_angles(
-        discrete_angles(spec, num_angles, rel_joint_angles.iter().cloned()),
+        discrete_angles(spec, NUM_ANGLES, rel_joint_angles.iter().cloned()),
         Isometry3::identity(),
     ).collect::<Vec<_>>();
 
-    let symmetry_transforms = symmetries(symmetry_count).collect::<Vec<_>>();
+    let symmetry_transforms = symmetries(SYMMETRY_COUNT).collect::<Vec<_>>();
 
     let last_joint_out = joint_transforms.last().unwrap() * spec.origin_to_out();
 
-    let problem = symmetry_adjust::Problem::new(
-        CostParams {
-            dist_weight: 5.0,
-            axis_weight: 1.0,
-            locking_weight: 1.0,
-            thresholds: Thresholds {
-                dist_for_axis: 4.0,
-                axis_for_locking: 0.2,
-            },
-        },
-        last_joint_out,
-        num_angles,
-        symmetry_count,
-    );
+    let problem =
+        symmetry_adjust::Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, SYMMETRY_COUNT);
 
     let mut window = Window::new("Trefoil");
     window.set_light(Light::StickToCamera);
@@ -62,7 +60,7 @@ fn main() {
         window.scene_mut(),
         &spec,
         0.5,
-        rel_joint_angles.len() * (symmetry_count as usize) * 2,
+        rel_joint_angles.len() * (SYMMETRY_COUNT as usize) * 2,
     );
 
     let cost_joint_0_idx = rel_joint_angles.len() - 1;
@@ -71,15 +69,13 @@ fn main() {
     nodes[cost_joint_0_idx].set_color(0.0, 1.0, 0.0);
     nodes[cost_joint_1_idx].set_color(1.0, 0.0, 1.0);
 
-    let mut adjust = symmetry_adjust::Vars {
-        radius: 10.0,
-        radial_angle: PI / 2.0,
-    };
+    let mut adjust = INITIAL_SYMMETRY_ADJUST;
 
     let opt_params = symmetry_adjust::OptimizationParams {
-        radius_step: 0.01,
-        radial_angle_step: 0.01,
-        descent_rate: 0.001,
+        radius_step: OPTIMIZATION_PARAMS.radius_step,
+        radial_angle_step: OPTIMIZATION_PARAMS.radial_angle_step,
+        // Intentionally slow descent rate for easy visualization
+        descent_rate: OPTIMIZATION_PARAMS.descent_rate / 30.0,
     };
 
     loop {
