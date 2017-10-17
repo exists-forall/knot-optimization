@@ -37,7 +37,7 @@ fn main() {
                 exit(1);
             })
         }
-        None => vec![0, 0, 0, 2, 0],
+        None => vec![2, 0, 15, 0, 0],
     };
 
     let joint_transforms = at_angles(

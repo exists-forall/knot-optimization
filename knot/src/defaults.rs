@@ -21,7 +21,7 @@ pub const OPTIMIZATION_PARAMS: OptimizationParams = OptimizationParams {
 };
 
 pub const INITIAL_SYMMETRY_ADJUST: Vars = Vars {
-    radius: 0.0,
+    radius: 10.0,
     radial_angle: PI / 2.0,
 };
 
