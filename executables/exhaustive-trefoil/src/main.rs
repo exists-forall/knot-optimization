@@ -66,10 +66,10 @@ const OPTIMIZATION_STEPS: u32 = 4;
 
 const INITIAL_SYMMETRY_ADJUST: Vars = Vars {
     radius: 0.0,
-    radial_angle: 0.0,
+    radial_angle: PI / 2.0,
 };
 
-const KEEP_COUNT: usize = 128;
+const KEEP_COUNT: usize = 2048;
 
 #[derive(Clone, Copy, Serialize)]
 struct KnotReport {
@@ -126,7 +126,7 @@ fn generate_reports() -> Vec<KnotReport> {
         .map(|angles| generate_report(spec, angles))
         .collect::<Vec<_>>();
 
-    println!("Generated reports");
+    println!("Generated {} knot reports", reports.len());
 
     println!("Sorting reports");
     reports.par_sort_unstable_by(|report_0, report_1| {
