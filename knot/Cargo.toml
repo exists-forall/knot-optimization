@@ -7,3 +7,4 @@ authors = ["William Brandon"]
 nalgebra = "0.13.1"
 alga = "0.5.2"
 approx = "0.1.1"
+rand = "0.3.17"

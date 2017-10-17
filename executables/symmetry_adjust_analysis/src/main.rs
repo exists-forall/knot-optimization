@@ -14,45 +14,10 @@ extern crate knot;
 use std::fs::File;
 use std::process::exit;
 use std::env::args;
-use rand::Rng;
-use rand::distributions::{IndependentSample, Normal};
 
-use nalgebra::{Translation3, Unit, UnitQuaternion, Quaternion, Isometry3, Vector3};
-
-use knot::symmetry_adjust::{Problem, OptimizationParams};
+use knot::symmetry_adjust::OptimizationParams;
 use knot::defaults::{COST_PARAMS, NUM_ANGLES, SYMMETRY_COUNT, INITIAL_SYMMETRY_ADJUST};
-
-fn rand_quaternion<R: Rng>(rng: &mut R) -> UnitQuaternion<f64> {
-    let dist = Normal::new(0.0, 1.0);
-    let w = dist.ind_sample(rng);
-    let x = dist.ind_sample(rng);
-    let y = dist.ind_sample(rng);
-    let z = dist.ind_sample(rng);
-    UnitQuaternion::new_normalize(Quaternion::new(w, x, y, z))
-}
-
-fn rand_direction<R: Rng>(rng: &mut R) -> Unit<Vector3<f64>> {
-    let dist = Normal::new(0.0, 1.0);
-    let x = dist.ind_sample(rng);
-    let y = dist.ind_sample(rng);
-    let z = dist.ind_sample(rng);
-    Unit::new_normalize(Vector3::new(x, y, z))
-}
-
-fn rand_translation<RadiusDist: IndependentSample<f64>, R: Rng>(
-    radius_dist: &RadiusDist,
-    rng: &mut R,
-) -> Translation3<f64> {
-    let dir = rand_direction(rng);
-    let radius = radius_dist.ind_sample(rng);
-    Translation3::from_vector(dir.unwrap() * radius)
-}
-
-fn rand_joint_trans<R: Rng>(rng: &mut R) -> Isometry3<f64> {
-    let translation = rand_translation(&Normal::new(1.0, 1.0), rng);
-    let rotation = rand_quaternion(rng);
-    Isometry3::from_parts(translation, rotation)
-}
+use knot::rand_problem::rand_problem;
 
 #[derive(Clone, Debug, Serialize)]
 struct ExperimentReport {
@@ -73,8 +38,7 @@ fn run_experiments() -> Vec<Vec<ExperimentReport>> {
     (0..problem_count)
         .map(|problem_i| {
             println!("Simulating problem {}", problem_i);
-            let last_joint_out = rand_joint_trans(&mut rng);
-            let problem = Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, SYMMETRY_COUNT);
+            let problem = rand_problem(&mut rng, COST_PARAMS, NUM_ANGLES, SYMMETRY_COUNT);
             descent_rate_pows
                 .clone()
                 .map(|descent_rate_pow| {
