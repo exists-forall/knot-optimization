@@ -48,7 +48,12 @@ fn view_report(
 ) -> SceneNode {
     let mut group = root.add_group();
 
-    let mut nodes = add_joints(&mut group, spec, 0.5, report.angles.len() * 6);
+    let mut nodes = add_joints(
+        &mut group,
+        spec,
+        0.5,
+        report.angles.len() * (SYMMETRY_COUNT as usize) * 2,
+    );
     let joint_transforms = at_angles(
         discrete_angles(*spec, num_angles, report.angles.iter().cloned()),
         Isometry3::identity(),
