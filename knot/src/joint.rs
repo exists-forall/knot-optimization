@@ -3,6 +3,8 @@ use std::f64::consts::PI;
 use nalgebra::{Translation3, Isometry3, Vector3, UnitQuaternion};
 use alga::general::SubsetOf;
 
+use serde::{Serialize, Serializer, Deserialize, Deserializer};
+
 /// A specification of the geometry of a joint. A joint is a geometric figure in 3D space consisting
 /// of three points: an "in" point, a "midpoint," and an "out" point. A joint has a standard
 /// coordinate system, with the origin at its midpoint, the y-axis aligned with the line from the
@@ -134,6 +136,38 @@ pub fn discrete_angles<I: Iterator<Item = i32>>(
             angle: angle_step * (angle as f64),
         }
     })
+}
+
+// Serialization and deserialization
+
+/// A struct with just the data needed to fully define a `JointSpec`, without also containing a
+/// cache of the the transformations that can be computed from those parameters.  Used for
+/// serialization and deserialization purposes only.
+#[derive(Serialize, Deserialize)]
+struct MinimalJointSpec {
+    dist_in: f64,
+    dist_out: f64,
+    bend_angle: f64,
+}
+
+impl Serialize for JointSpec {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let params = MinimalJointSpec {
+            dist_in: self.dist_in,
+            dist_out: self.dist_out,
+            bend_angle: self.bend_angle,
+        };
+
+        params.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for JointSpec {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        MinimalJointSpec::deserialize(deserializer).map(|params| {
+            JointSpec::new(params.dist_in, params.dist_out, params.bend_angle)
+        })
+    }
 }
 
 #[cfg(test)]

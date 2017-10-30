@@ -5,8 +5,6 @@ extern crate alga;
 extern crate nalgebra;
 extern crate glfw;
 extern crate serde;
-#[macro_use]
-extern crate serde_derive;
 extern crate serde_json;
 
 extern crate knot;
@@ -27,17 +25,8 @@ use alga::general::SubsetOf;
 
 use knot::joint::{JointSpec, discrete_angles, at_angles};
 use knot::symmetry::symmetries;
-use knot::symmetry_adjust;
 use knot_visualize::joint_render::add_joints;
-use knot::defaults::{NUM_ANGLES, SYMMETRY_COUNT, joint_spec};
-
-#[derive(Clone, Debug, Deserialize)]
-struct KnotReport {
-    angles: Vec<i32>,
-    adjust_radius: f64,
-    adjust_radial_angle: f64,
-    cost: f64,
-}
+use knot::report::{KnotReport, KnotReports};
 
 fn view_report(
     root: &mut SceneNode,
@@ -52,18 +41,14 @@ fn view_report(
         &mut group,
         spec,
         0.5,
-        report.angles.len() * (SYMMETRY_COUNT as usize) * 2,
+        report.angles.len() * (symmetry_count as usize) * 2,
     );
     let joint_transforms = at_angles(
         discrete_angles(*spec, num_angles, report.angles.iter().cloned()),
         Isometry3::identity(),
     ).collect::<Vec<_>>();
 
-    let adjust_vars = symmetry_adjust::Vars {
-        radius: report.adjust_radius,
-        radial_angle: report.adjust_radial_angle,
-    };
-    let adjust_trans = adjust_vars.transform();
+    let adjust_trans = report.symmetry_adjust.transform();
 
     let mut node_i = 0;
     for sym_trans in symmetries(symmetry_count) {
@@ -88,17 +73,15 @@ fn main() {
         eprintln!("Could not open file {}", filename);
         exit(1);
     });
-    let reports: Vec<KnotReport> = serde_json::from_reader(file).unwrap_or_else(|_| {
+    let reports: KnotReports = serde_json::from_reader(file).unwrap_or_else(|_| {
         eprintln!("Could not parse input file");
         exit(1);
     });
-    if reports.len() == 0 {
+    if reports.knots.len() == 0 {
         eprintln!("No reports to view");
         exit(1);
     }
-    println!("Loaded {} reports", reports.len());
-
-    let spec = joint_spec();
+    println!("Loaded {} reports", reports.knots.len());
 
     let mut window = Window::new("Trefoil");
     window.set_light(Light::StickToCamera);
@@ -108,10 +91,10 @@ fn main() {
 
     let mut knot_node = view_report(
         window.scene_mut(),
-        NUM_ANGLES,
-        &spec,
-        SYMMETRY_COUNT,
-        &reports[report_i],
+        reports.num_angles,
+        &reports.joint_spec,
+        reports.symmetry_count,
+        &reports.knots[report_i],
     );
 
     while window.render_with_camera(&mut camera) {
@@ -126,28 +109,28 @@ fn main() {
                                 window.remove(&mut knot_node);
                                 knot_node = view_report(
                                     window.scene_mut(),
-                                    NUM_ANGLES,
-                                    &spec,
-                                    SYMMETRY_COUNT,
-                                    &reports[report_i],
+                                    reports.num_angles,
+                                    &reports.joint_spec,
+                                    reports.symmetry_count,
+                                    &reports.knots[report_i],
                                 );
                                 println!("Viewing report {}", report_i);
-                                println!("{:#?}", &reports[report_i]);
+                                println!("{:#?}", &reports.knots[report_i]);
                             }
                         }
                         Key::Right => {
-                            if report_i < reports.len() - 1 {
+                            if report_i < reports.knots.len() - 1 {
                                 report_i += 1;
                                 window.remove(&mut knot_node);
                                 knot_node = view_report(
                                     window.scene_mut(),
-                                    NUM_ANGLES,
-                                    &spec,
-                                    SYMMETRY_COUNT,
-                                    &reports[report_i],
+                                    reports.num_angles,
+                                    &reports.joint_spec,
+                                    reports.symmetry_count,
+                                    &reports.knots[report_i],
                                 );
                                 println!("Viewing report {}", report_i);
-                                println!("{:#?}", &reports[report_i]);
+                                println!("{:#?}", &reports.knots[report_i]);
                             }
                         }
                         _ => {}

@@ -4,7 +4,7 @@ use symmetry;
 use cost::{CostParams, cost_opposing};
 
 /// Analog parameters for how a chain of joints can be positioned in space with symmetry.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Vars {
     /// The distance of the origin of the chain from the origin of symmetry.
     pub radius: f64,
@@ -163,7 +163,7 @@ impl Problem {
 }
 
 /// Configurable parameters for tuning the gradient descent process.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct OptimizationParams {
     /// The finite step size used to approximate partial derivatives with respect to `radius`.
     pub radius_step: f64,

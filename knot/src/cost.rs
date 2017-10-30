@@ -6,7 +6,7 @@ use alga::general::SubsetOf;
 
 /// Configurable parameters for determinng when certain terms in the cost function should be
 /// calculated.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Thresholds {
     /// The minimum unweighted distance cost (i.e. the squared euclidean distance) at which the axis
     /// cost will be calculated.  Above this distance cost, the axis cost is set to the maximum
@@ -28,7 +28,7 @@ pub const NO_THRESHOLD: Thresholds = Thresholds {
 };
 
 /// Configurable parmaters for measuring how well two joints fit together
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CostParams {
     /// The weight assigned to the squared euclidean distance between the ends of the two joints.
     pub dist_weight: f64,
@@ -47,7 +47,7 @@ pub struct CostParams {
 }
 
 /// Several measures of how well two joints fit together.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Costs {
     /// The squared euclidean distance between the ends of the two joints.
     pub dist: f64,

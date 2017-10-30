@@ -8,6 +8,5 @@ knot = { path = "../../knot" }
 nalgebra = "0.13.1"
 alga = "0.5.2"
 serde = "1.0.15"
-serde_derive = "1.0.15"
 serde_json = "1.0.4"
 rayon = "0.8.2"

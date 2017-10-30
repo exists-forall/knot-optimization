@@ -2,8 +2,6 @@
 
 extern crate alga;
 extern crate nalgebra;
-#[macro_use]
-extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 extern crate rayon;
@@ -18,9 +16,11 @@ use std::env::args;
 use nalgebra::Isometry3;
 
 use knot::joint::{JointSpec, at_angles, discrete_angles};
+use knot::symmetry_adjust;
 use knot::symmetry_adjust::Problem;
 use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, INITIAL_SYMMETRY_ADJUST,
                      SYMMETRY_COUNT, joint_spec};
+use knot::report::{KnotReport, KnotReports};
 
 use rayon::prelude::*;
 use rayon::prelude::IntoParallelIterator;
@@ -48,15 +48,14 @@ const OPTIMIZATION_STEPS: u32 = 4;
 
 const KEEP_COUNT: usize = 2048;
 
-#[derive(Clone, Copy, Serialize)]
-struct KnotReport {
+#[derive(Clone, Copy)]
+struct Knot {
     angles: [u32; NUM_JOINTS as usize],
-    adjust_radius: f64,
-    adjust_radial_angle: f64,
+    symmetry_adjust: symmetry_adjust::Vars,
     cost: f64,
 }
 
-fn generate_report(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> KnotReport {
+fn generate_knot(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> Knot {
     let last_joint_trans = at_angles(
         discrete_angles(
             spec,
@@ -76,10 +75,9 @@ fn generate_report(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> KnotR
 
     let cost = problem.cost(&vars);
 
-    KnotReport {
+    Knot {
         angles,
-        adjust_radius: vars.radius,
-        adjust_radial_angle: vars.radial_angle,
+        symmetry_adjust: vars,
         cost,
     }
 }
@@ -95,23 +93,45 @@ fn nan_greatest(a: f64, b: f64) -> Ordering {
     )
 }
 
-fn generate_reports() -> Vec<KnotReport> {
+fn generate_knots() -> Vec<Knot> {
     let spec = joint_spec();
 
-    println!("Generating {} knot reports", NUM_ANGLES.pow(NUM_JOINTS));
-    let mut reports = exhaustive!(NUM_ANGLES; NUM_JOINTS)
-        .map(|angles| generate_report(spec, angles))
+    println!("Generating {} knots", NUM_ANGLES.pow(NUM_JOINTS));
+    let mut knots = exhaustive!(NUM_ANGLES; NUM_JOINTS)
+        .map(|angles| generate_knot(spec, angles))
         .collect::<Vec<_>>();
 
-    println!("Generated {} knot reports", reports.len());
+    println!("Generated {} knots", knots.len());
 
-    println!("Sorting reports");
-    reports.par_sort_unstable_by(|report_0, report_1| {
+    println!("Sorting knots");
+    knots.par_sort_unstable_by(|report_0, report_1| {
         nan_greatest(report_0.cost, report_1.cost)
     });
-    println!("Sorted reports");
+    println!("Sorted knots");
 
-    reports
+    knots
+}
+
+fn generate_reports() -> KnotReports {
+    let knots = generate_knots();
+
+    let reports = knots[0..KEEP_COUNT.min(knots.len())]
+        .iter()
+        .map(|knot| {
+            KnotReport {
+                angles: knot.angles.iter().map(|&angle| angle as i32).collect(),
+                symmetry_adjust: knot.symmetry_adjust,
+            }
+        })
+        .collect();
+
+    KnotReports {
+        joint_spec: joint_spec(),
+        num_angles: NUM_ANGLES,
+        symmetry_count: SYMMETRY_COUNT,
+        knots: reports,
+        cost_params: COST_PARAMS,
+    }
 }
 
 fn main() {
@@ -124,6 +144,10 @@ fn main() {
         exit(1);
     });
     let reports = generate_reports();
-    println!("Serializing best {} reports to {}", KEEP_COUNT, filename);
-    serde_json::to_writer(&mut file, &reports[0..KEEP_COUNT]).expect("Could not write to file");
+    println!(
+        "Serializing best {} knots to {}",
+        reports.knots.len(),
+        filename
+    );
+    serde_json::to_writer(&mut file, &reports).expect("Could not write to file");
 }
