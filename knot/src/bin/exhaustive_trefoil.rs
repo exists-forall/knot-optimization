@@ -18,7 +18,7 @@ use nalgebra::Isometry3;
 use knot::joint::{JointSpec, at_angles, discrete_angles};
 use knot::symmetry_adjust;
 use knot::symmetry_adjust::Problem;
-use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, INITIAL_SYMMETRY_ADJUST,
+use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, initial_symmetry_adjusts,
                      SYMMETRY_COUNT, joint_spec};
 use knot::report::{KnotReport, KnotReports};
 
@@ -55,6 +55,37 @@ struct Knot {
     cost: f64,
 }
 
+/// Float variant which supports total ordering by considering NaN to be the greatest value and
+/// equal to itself. Useful for sorting by cost, where NaN cost indicates that something has gone
+/// very wrong.
+#[derive(Clone, Copy, Debug, PartialOrd)]
+struct NanGreatest(f64);
+
+impl PartialEq for NanGreatest {
+    fn eq(&self, other: &Self) -> bool {
+        (self.0.is_nan() && other.0.is_nan()) || self.0 == other.0
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        (self.0.is_nan() != other.0.is_nan()) || self.0 != other.0
+    }
+}
+
+impl Eq for NanGreatest {}
+
+impl Ord for NanGreatest {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.partial_cmp(&other.0).unwrap_or_else(|| match (
+            self.0.is_nan(),
+            other.0.is_nan(),
+        ) {
+            (true, false) => Ordering::Greater,
+            (false, true) => Ordering::Less,
+            (_, _) => Ordering::Equal,
+        })
+    }
+}
+
 fn generate_knot(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> Knot {
     let last_joint_trans = at_angles(
         discrete_angles(
@@ -68,29 +99,22 @@ fn generate_knot(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> Knot {
     let last_joint_out = last_joint_trans * spec.origin_to_out();
     let problem = Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, SYMMETRY_COUNT);
 
-    let mut vars = INITIAL_SYMMETRY_ADJUST;
-    for _ in 0..OPTIMIZATION_STEPS {
-        problem.optimize(&OPTIMIZATION_PARAMS, &mut vars);
-    }
-
-    let cost = problem.cost(&vars);
+    let (vars, cost) = initial_symmetry_adjusts()
+        .map(|mut vars| {
+            for _ in 0..OPTIMIZATION_STEPS {
+                problem.optimize(&OPTIMIZATION_PARAMS, &mut vars);
+            }
+            let cost = problem.cost(&vars);
+            (vars, cost)
+        })
+        .min_by_key(|&(_, cost)| NanGreatest(cost))
+        .unwrap();
 
     Knot {
         angles,
         symmetry_adjust: vars,
         cost,
     }
-}
-
-/// Compare two floats, treating NaN as greater than all other values and equal to itself
-fn nan_greatest(a: f64, b: f64) -> Ordering {
-    a.partial_cmp(&b).unwrap_or_else(
-        || match (a.is_nan(), b.is_nan()) {
-            (true, false) => Ordering::Greater,
-            (false, true) => Ordering::Less,
-            (_, _) => Ordering::Equal,
-        },
-    )
 }
 
 fn generate_knots() -> Vec<Knot> {
@@ -104,9 +128,10 @@ fn generate_knots() -> Vec<Knot> {
     println!("Generated {} knots", knots.len());
 
     println!("Sorting knots");
-    knots.par_sort_unstable_by(|report_0, report_1| {
-        nan_greatest(report_0.cost, report_1.cost)
-    });
+    // knots.par_sort_unstable_by_key(|report_0, report_1| {
+    //     nan_greatest(report_0.cost, report_1.cost)
+    // });
+    knots.par_sort_unstable_by_key(|knot| NanGreatest(knot.cost));
     println!("Sorted knots");
 
     knots
