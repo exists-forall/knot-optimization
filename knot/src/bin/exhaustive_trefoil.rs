@@ -12,6 +12,7 @@ use std::cmp::Ordering;
 use std::fs::File;
 use std::process::exit;
 use std::env::args;
+use std::f64::consts::PI;
 
 use nalgebra::Isometry3;
 
@@ -21,6 +22,7 @@ use knot::symmetry_adjust::Problem;
 use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, initial_symmetry_adjusts,
                      SYMMETRY_COUNT, joint_spec};
 use knot::report::{KnotReport, KnotReports};
+use knot::filter::winding_angle;
 
 use rayon::prelude::*;
 use rayon::prelude::IntoParallelIterator;
@@ -46,6 +48,8 @@ const NUM_JOINTS: u32 = 5;
 
 const OPTIMIZATION_STEPS: u32 = 4;
 
+const WINDING_ANGLE_TOLERANCE: f64 = 0.1;
+
 const KEEP_COUNT: usize = 2048;
 
 #[derive(Clone, Copy)]
@@ -53,6 +57,7 @@ struct Knot {
     angles: [u32; NUM_JOINTS as usize],
     symmetry_adjust: symmetry_adjust::Vars,
     cost: f64,
+    good_candidate: bool,
 }
 
 /// Float variant which supports total ordering by considering NaN to be the greatest value and
@@ -86,16 +91,30 @@ impl Ord for NanGreatest {
     }
 }
 
+/// Write the elements of an iterator into a slice.
+fn fill_slice<T, I: Iterator<Item = T>>(slice: &mut [T], iter: I) {
+    for (item, slot) in iter.zip(slice.iter_mut()) {
+        *slot = item;
+    }
+}
+
 fn generate_knot(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> Knot {
-    let last_joint_trans = at_angles(
-        discrete_angles(
-            spec,
-            NUM_ANGLES,
-            angles.iter().cloned().map(|angle| angle as i32),
+    let mut joint_transformations = [Isometry3::identity(); NUM_JOINTS as usize];
+
+    fill_slice(
+        &mut joint_transformations,
+        at_angles(
+            discrete_angles(
+                spec,
+                NUM_ANGLES,
+                angles.iter().cloned().map(|angle| angle as i32),
+            ),
+            Isometry3::identity(),
         ),
-        Isometry3::identity(),
-    ).last()
-        .unwrap();
+    );
+
+    let last_joint_trans = joint_transformations.last().unwrap();
+
     let last_joint_out = last_joint_trans * spec.origin_to_out();
     let problem = Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, SYMMETRY_COUNT);
 
@@ -110,22 +129,31 @@ fn generate_knot(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> Knot {
         .min_by_key(|&(_, cost)| NanGreatest(cost))
         .unwrap();
 
+    let symmetry_adjust_trans = vars.transform();
+    let mut total_winding_angle = 0.0;
+    for joint_trans in joint_transformations.iter() {
+        total_winding_angle += winding_angle(&spec, &(symmetry_adjust_trans * joint_trans));
+    }
+
     Knot {
         angles,
         symmetry_adjust: vars,
         cost,
+        good_candidate: (total_winding_angle.abs() - 2.0 * PI / (SYMMETRY_COUNT as f64)).abs() <=
+            WINDING_ANGLE_TOLERANCE,
     }
 }
 
 fn generate_knots() -> Vec<Knot> {
     let spec = joint_spec();
 
-    println!("Generating {} knots", NUM_ANGLES.pow(NUM_JOINTS));
+    println!("Generating {} candidate knots", NUM_ANGLES.pow(NUM_JOINTS));
     let mut knots = exhaustive!(NUM_ANGLES; NUM_JOINTS)
         .map(|angles| generate_knot(spec, angles))
+        .filter(|knot| knot.good_candidate)
         .collect::<Vec<_>>();
 
-    println!("Generated {} knots", knots.len());
+    println!("Generated {} good knots", knots.len());
 
     println!("Sorting knots");
     // knots.par_sort_unstable_by_key(|report_0, report_1| {
