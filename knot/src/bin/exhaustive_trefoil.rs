@@ -156,9 +156,6 @@ fn generate_knots() -> Vec<Knot> {
     println!("Generated {} good knots", knots.len());
 
     println!("Sorting knots");
-    // knots.par_sort_unstable_by_key(|report_0, report_1| {
-    //     nan_greatest(report_0.cost, report_1.cost)
-    // });
     knots.par_sort_unstable_by_key(|knot| NanGreatest(knot.cost));
     println!("Sorted knots");
 
