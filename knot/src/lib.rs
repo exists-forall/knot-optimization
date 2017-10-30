@@ -19,3 +19,4 @@ pub mod symmetry_adjust;
 pub mod defaults;
 pub mod rand_problem;
 pub mod report;
+pub mod visualize;

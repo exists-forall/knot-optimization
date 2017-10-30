@@ -3,10 +3,10 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use nalgebra::{Vector3, UnitQuaternion, Point3, Translation3};
-use kiss3d::scene::SceneNode;
-use kiss3d::resource::Mesh;
+use super::kiss3d::scene::SceneNode;
+use super::kiss3d::resource::Mesh;
 
-use knot::joint::JointSpec;
+use joint::JointSpec;
 
 /// Count from `start` to `end` in `count` equally-spaced steps.
 fn float_steps_inclusive(start: f32, end: f32, count: u32) -> impl Iterator<Item = f32> {

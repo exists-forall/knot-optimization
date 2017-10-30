@@ -6,7 +6,6 @@ extern crate nalgebra;
 extern crate glfw;
 
 extern crate knot;
-extern crate knot_visualize;
 extern crate serde;
 extern crate serde_json;
 
@@ -24,7 +23,7 @@ use alga::general::SubsetOf;
 use knot::joint::{discrete_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::symmetry_adjust;
-use knot_visualize::joint_render::add_joints;
+use knot::visualize::joint_render::add_joints;
 use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, INITIAL_SYMMETRY_ADJUST,
                      SYMMETRY_COUNT, joint_spec};
 

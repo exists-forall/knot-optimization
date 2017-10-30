@@ -8,7 +8,6 @@ extern crate serde;
 extern crate serde_json;
 
 extern crate knot;
-extern crate knot_visualize;
 
 use std::fs::File;
 use std::process::exit;
@@ -25,7 +24,7 @@ use alga::general::SubsetOf;
 
 use knot::joint::{JointSpec, discrete_angles, at_angles};
 use knot::symmetry::symmetries;
-use knot_visualize::joint_render::add_joints;
+use knot::visualize::joint_render::add_joints;
 use knot::report::{KnotReport, KnotReports};
 
 fn view_report(
