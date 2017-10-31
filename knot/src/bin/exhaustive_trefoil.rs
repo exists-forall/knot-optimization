@@ -5,13 +5,13 @@ extern crate nalgebra;
 extern crate serde;
 extern crate serde_json;
 extern crate rayon;
+extern crate clap;
 
 extern crate knot;
 
 use std::cmp::Ordering;
 use std::fs::File;
 use std::process::exit;
-use std::env::args;
 use std::f64::consts::PI;
 
 use nalgebra::Isometry3;
@@ -19,14 +19,16 @@ use nalgebra::Isometry3;
 use knot::joint::{JointSpec, at_angles, discrete_angles};
 use knot::symmetry_adjust;
 use knot::symmetry_adjust::Problem;
-use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, initial_symmetry_adjusts,
-                     SYMMETRY_COUNT, joint_spec};
+use knot::defaults;
+use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, initial_symmetry_adjusts};
 use knot::report::{KnotReport, KnotReports};
 use knot::filter::winding_angle;
 
 use rayon::prelude::*;
 use rayon::prelude::IntoParallelIterator;
 use rayon::slice::ParallelSliceMut;
+
+use clap::{Arg, App};
 
 macro_rules! exhaustive {
     ($symbols: expr; $count: expr) => { {
@@ -98,7 +100,7 @@ fn fill_slice<T, I: Iterator<Item = T>>(slice: &mut [T], iter: I) {
     }
 }
 
-fn generate_knot(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> Knot {
+fn generate_knot(spec: JointSpec, symmetry: u32, angles: [u32; NUM_JOINTS as usize]) -> Knot {
     let mut joint_transformations = [Isometry3::identity(); NUM_JOINTS as usize];
 
     fill_slice(
@@ -116,7 +118,7 @@ fn generate_knot(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> Knot {
     let last_joint_trans = joint_transformations.last().unwrap();
 
     let last_joint_out = last_joint_trans * spec.origin_to_out();
-    let problem = Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, SYMMETRY_COUNT);
+    let problem = Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, symmetry);
 
     let (vars, cost) = initial_symmetry_adjusts()
         .map(|mut vars| {
@@ -134,22 +136,20 @@ fn generate_knot(spec: JointSpec, angles: [u32; NUM_JOINTS as usize]) -> Knot {
     for joint_trans in joint_transformations.iter() {
         total_winding_angle += winding_angle(&spec, &(symmetry_adjust_trans * joint_trans));
     }
+    let winding_goal = ((symmetry - 1) as f64) * PI / (symmetry as f64);
 
     Knot {
         angles,
         symmetry_adjust: vars,
         cost,
-        good_candidate: (total_winding_angle.abs() - 2.0 * PI / (SYMMETRY_COUNT as f64)).abs() <=
-            WINDING_ANGLE_TOLERANCE,
+        good_candidate: (total_winding_angle.abs() - winding_goal).abs() <= WINDING_ANGLE_TOLERANCE,
     }
 }
 
-fn generate_knots() -> Vec<Knot> {
-    let spec = joint_spec();
-
+fn generate_knots(spec: JointSpec, symmetry: u32) -> Vec<Knot> {
     println!("Generating {} candidate knots", NUM_ANGLES.pow(NUM_JOINTS));
     let mut knots = exhaustive!(NUM_ANGLES; NUM_JOINTS)
-        .map(|angles| generate_knot(spec, angles))
+        .map(|angles| generate_knot(spec, symmetry, angles))
         .filter(|knot| knot.good_candidate)
         .collect::<Vec<_>>();
 
@@ -162,8 +162,8 @@ fn generate_knots() -> Vec<Knot> {
     knots
 }
 
-fn generate_reports() -> KnotReports {
-    let knots = generate_knots();
+fn generate_reports(spec: JointSpec, symmetry: u32) -> KnotReports {
+    let knots = generate_knots(spec, symmetry);
 
     let reports = knots[0..KEEP_COUNT.min(knots.len())]
         .iter()
@@ -176,28 +176,73 @@ fn generate_reports() -> KnotReports {
         .collect();
 
     KnotReports {
-        joint_spec: joint_spec(),
+        joint_spec: spec,
         num_angles: NUM_ANGLES,
-        symmetry_count: SYMMETRY_COUNT,
+        symmetry_count: symmetry,
         knots: reports,
         cost_params: COST_PARAMS,
     }
 }
 
 fn main() {
-    let filename = args().nth(1).unwrap_or_else(|| {
-        eprintln!("Expected a single output file");
+    let default_symmetry_str = defaults::SYMMETRY_COUNT.to_string();
+    let default_bend_angle_str = defaults::joint_spec().bend_angle().to_degrees().to_string();
+
+    let matches = App::new("Exhaustive Symmetric Knot Model Generator")
+        .author("William Brandon <hypercube97@gmail.com>")
+        .version("0.1.0")
+        .arg(
+            Arg::with_name("output")
+                .long("output")
+                .value_name("FILE.json")
+                .help("Sets the output file path")
+                .takes_value(true)
+                .required(true),
+        )
+        .arg(
+            Arg::with_name("symmetry")
+                .long("symmetry")
+                .value_name("INT")
+                .default_value(&default_symmetry_str)
+                .help("Sets dihedral-N symmetry"),
+        )
+        .arg(
+            Arg::with_name("bend-angle")
+                .long("bend-angle")
+                .value_name("DEGREES")
+                .default_value(&default_bend_angle_str)
+                .help("Sets bend angle of all joints"),
+        )
+        .get_matches();
+
+    let output = matches.value_of("output").unwrap();
+    let symmetry = matches
+        .value_of("symmetry")
+        .unwrap()
+        .parse::<u32>()
+        .unwrap_or_else(|err| {
+            eprintln!("Invalid symmetry: {}", err);
+            exit(1);
+        });
+    let bend_angle = matches
+        .value_of("bend-angle")
+        .unwrap()
+        .parse::<f64>()
+        .unwrap_or_else(|err| {
+            eprintln!("Invalid bend angle: {}", err);
+            exit(1);
+        })
+        .to_radians();
+
+    let mut file = File::create(&output).unwrap_or_else(|_| {
+        eprintln!("Could not create file {}", output);
         exit(1);
     });
-    let mut file = File::create(&filename).unwrap_or_else(|_| {
-        eprintln!("Could not create file {}", filename);
-        exit(1);
-    });
-    let reports = generate_reports();
+    let reports = generate_reports(JointSpec::new(1.0, 1.0, bend_angle), symmetry);
     println!(
         "Serializing best {} knots to {}",
         reports.knots.len(),
-        filename
+        output
     );
     serde_json::to_writer(&mut file, &reports).expect("Could not write to file");
 }
