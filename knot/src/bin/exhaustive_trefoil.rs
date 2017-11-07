@@ -21,7 +21,7 @@ use knot::joint::{JointSpec, at_angles, discrete_angles};
 use knot::symmetry_adjust;
 use knot::symmetry_adjust::Problem;
 use knot::defaults;
-use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, initial_symmetry_adjusts};
+use knot::defaults::{COST_PARAMS, NUM_ANGLES};
 use knot::report::{KnotReport, KnotReports, JointsParity};
 use knot::filter::{points, WindingAngles};
 
@@ -48,8 +48,6 @@ macro_rules! exhaustive {
 }
 
 const NUM_JOINTS: u32 = 5;
-
-const OPTIMIZATION_STEPS: u32 = 4;
 
 const WINDING_ANGLE_TOLERANCE: f64 = 0.1;
 
