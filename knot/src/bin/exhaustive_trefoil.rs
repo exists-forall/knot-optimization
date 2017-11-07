@@ -22,8 +22,8 @@ use knot::symmetry_adjust;
 use knot::symmetry_adjust::Problem;
 use knot::defaults;
 use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, initial_symmetry_adjusts};
-use knot::report::{KnotReport, KnotReports};
-use knot::filter::winding_angle;
+use knot::report::{KnotReport, KnotReports, JointsParity};
+use knot::filter::{points, WindingAngles};
 
 use rayon::prelude::*;
 use rayon::prelude::IntoParallelIterator;
@@ -113,7 +113,12 @@ fn update_max<T: PartialOrd>(accum: &mut T, new: T) {
     }
 }
 
-fn generate_knot(spec: JointSpec, symmetry: u32, angles: [u32; NUM_JOINTS as usize]) -> Knot {
+fn generate_knot(
+    spec: JointSpec,
+    symmetry: u32,
+    angles: [u32; NUM_JOINTS as usize],
+    parity: JointsParity,
+) -> Knot {
     let mut joint_transformations = [Isometry3::identity(); NUM_JOINTS as usize];
 
     fill_slice(
@@ -124,7 +129,10 @@ fn generate_knot(spec: JointSpec, symmetry: u32, angles: [u32; NUM_JOINTS as usi
                 NUM_ANGLES,
                 angles.iter().cloned().map(|angle| angle as i32),
             ),
-            Isometry3::identity(),
+            match parity {
+                JointsParity::Even => Isometry3::identity(),
+                JointsParity::Odd => spec.origin_to_symmetric() * spec.origin_to_out(),
+            },
         ),
     );
 
@@ -136,30 +144,30 @@ fn generate_knot(spec: JointSpec, symmetry: u32, angles: [u32; NUM_JOINTS as usi
     let (vars, cost) = problem.solve_direct();
 
     let symmetry_adjust_trans = vars.transform();
-    let mut total_winding_angle = 0.0;
+    let adjusted_points = points(spec, joint_transformations.iter().cloned()).map(
+        |point| symmetry_adjust_trans * point,
+    );
+
+    let mut winding_angles = WindingAngles::new();
     let mut min_z = INFINITY;
     let mut max_z = -INFINITY;
     let mut min_r = INFINITY;
     let mut max_r = -INFINITY;
-    for joint_trans in joint_transformations.iter() {
-        let adjusted_trans = symmetry_adjust_trans * joint_trans;
-        total_winding_angle += winding_angle(&spec, &adjusted_trans);
+    for point in adjusted_points {
+        winding_angles.next_point(point);
 
-        let x = adjusted_trans.translation.vector.x;
-        let y = adjusted_trans.translation.vector.y;
-        let z = adjusted_trans.translation.vector.z;
-        let r = x.hypot(y);
+        update_min(&mut min_z, point.z);
+        update_max(&mut max_z, point.z);
 
-        update_min(&mut min_z, z);
-        update_max(&mut max_z, z);
-
+        let r = point.x.hypot(point.y);
         update_min(&mut min_r, r);
         update_max(&mut max_r, r);
     }
 
     let winding_goal = ((symmetry - 1) as f64) * PI / (symmetry as f64);
-    let good_winding = (total_winding_angle.abs() - winding_goal).abs() <= WINDING_ANGLE_TOLERANCE;
-    let good_z = (max_z - min_z) >= 2.0 * spec.radius();
+    let good_winding = (winding_angles.total().abs() - winding_goal).abs() <=
+        WINDING_ANGLE_TOLERANCE;
+    let good_z = (max_z - min_z) >= spec.radius();
     let good_r = (max_r - min_r) >= 2.0 * spec.radius();
 
     Knot {
@@ -170,10 +178,10 @@ fn generate_knot(spec: JointSpec, symmetry: u32, angles: [u32; NUM_JOINTS as usi
     }
 }
 
-fn generate_knots(spec: JointSpec, symmetry: u32) -> Vec<Knot> {
+fn generate_knots(spec: JointSpec, symmetry: u32, parity: JointsParity) -> Vec<Knot> {
     println!("Generating {} candidate knots", NUM_ANGLES.pow(NUM_JOINTS));
     let mut knots = exhaustive!(NUM_ANGLES; NUM_JOINTS)
-        .map(|angles| generate_knot(spec, symmetry, angles))
+        .map(|angles| generate_knot(spec, symmetry, angles, parity))
         .filter(|knot| knot.good_candidate)
         .collect::<Vec<_>>();
 
@@ -186,8 +194,8 @@ fn generate_knots(spec: JointSpec, symmetry: u32) -> Vec<Knot> {
     knots
 }
 
-fn generate_reports(spec: JointSpec, symmetry: u32) -> KnotReports {
-    let knots = generate_knots(spec, symmetry);
+fn generate_reports(spec: JointSpec, symmetry: u32, parity: JointsParity) -> KnotReports {
+    let knots = generate_knots(spec, symmetry, parity);
 
     let reports = knots[0..KEEP_COUNT.min(knots.len())]
         .iter()
@@ -205,6 +213,7 @@ fn generate_reports(spec: JointSpec, symmetry: u32) -> KnotReports {
         symmetry_count: symmetry,
         knots: reports,
         cost_params: COST_PARAMS,
+        parity,
     }
 }
 
@@ -245,6 +254,9 @@ fn main() {
                 .default_value(&default_radius_str)
                 .help("Sets cylinder radius of all joints"),
         )
+        .arg(Arg::with_name("odd").short("o").long("odd").help(
+            "Use an odd number of segments in each horseshoe",
+        ))
         .get_matches();
 
     let output = matches.value_of("output").unwrap();
@@ -273,12 +285,21 @@ fn main() {
             eprintln!("Invalid joint radius: {}", err);
             exit(1);
         });
+    let parity = if matches.is_present("odd") {
+        JointsParity::Odd
+    } else {
+        JointsParity::Even
+    };
 
     let mut file = File::create(&output).unwrap_or_else(|_| {
         eprintln!("Could not create file {}", output);
         exit(1);
     });
-    let reports = generate_reports(JointSpec::new(1.0, 1.0, bend_angle, radius), symmetry);
+    let reports = generate_reports(
+        JointSpec::new(1.0, 1.0, bend_angle, radius),
+        symmetry,
+        parity,
+    );
     println!(
         "Serializing best {} knots to {}",
         reports.knots.len(),

@@ -25,13 +25,14 @@ use alga::general::SubsetOf;
 use knot::joint::{JointSpec, discrete_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::visualize::joint_render::add_joints;
-use knot::report::{KnotReport, KnotReports};
+use knot::report::{KnotReport, KnotReports, JointsParity};
 
 fn view_report(
     root: &mut SceneNode,
     num_angles: u32,
     spec: &JointSpec,
     symmetry_count: u32,
+    parity: JointsParity,
     report: &KnotReport,
 ) -> SceneNode {
     let mut group = root.add_group();
@@ -39,17 +40,40 @@ fn view_report(
     let mut nodes = add_joints(
         &mut group,
         spec,
-        report.angles.len() * (symmetry_count as usize) * 2,
+        (symmetry_count as usize) *
+            (2 * report.angles.len() +
+                 match parity {
+                     JointsParity::Even => 0,
+                     JointsParity::Odd => 1,
+                 }),
     );
     let joint_transforms = at_angles(
         discrete_angles(*spec, num_angles, report.angles.iter().cloned()),
-        Isometry3::identity(),
+        match parity {
+            JointsParity::Even => Isometry3::identity(),
+            JointsParity::Odd => spec.origin_to_symmetric() * spec.origin_to_out(),
+        },
     ).collect::<Vec<_>>();
 
     let adjust_trans = report.symmetry_adjust.transform();
 
     let mut node_i = 0;
+    let mut first_in_horseshoe = true;
     for sym_trans in symmetries(symmetry_count) {
+        match parity {
+            JointsParity::Even => {}
+            JointsParity::Odd => {
+                if first_in_horseshoe {
+                    nodes[node_i].set_local_transformation(
+                        (sym_trans * adjust_trans * spec.origin_to_symmetric())
+                            .to_superset(),
+                    );
+                    nodes[node_i].set_color(0.2, 0.2, 0.2);
+                    node_i += 1;
+                }
+            }
+        }
+        first_in_horseshoe = !first_in_horseshoe;
         for joint_trans in &joint_transforms {
             nodes[node_i].set_local_transformation(
                 (sym_trans * adjust_trans * joint_trans)
@@ -92,6 +116,7 @@ fn main() {
         reports.num_angles,
         &reports.joint_spec,
         reports.symmetry_count,
+        reports.parity,
         &reports.knots[report_i],
     );
 
@@ -110,6 +135,7 @@ fn main() {
                                     reports.num_angles,
                                     &reports.joint_spec,
                                     reports.symmetry_count,
+                                    reports.parity,
                                     &reports.knots[report_i],
                                 );
                                 println!("Viewing report {}", report_i);
@@ -125,6 +151,7 @@ fn main() {
                                     reports.num_angles,
                                     &reports.joint_spec,
                                     reports.symmetry_count,
+                                    reports.parity,
                                     &reports.knots[report_i],
                                 );
                                 println!("Viewing report {}", report_i);

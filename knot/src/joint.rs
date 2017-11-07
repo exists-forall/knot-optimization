@@ -23,6 +23,7 @@ pub struct JointSpec {
     out_to_origin: Isometry3<f64>,
     origin_to_in: Isometry3<f64>,
     origin_to_out: Isometry3<f64>,
+    origin_to_symmetric: Isometry3<f64>,
 }
 
 impl JointSpec {
@@ -35,6 +36,9 @@ impl JointSpec {
         let origin_to_out = UnitQuaternion::from_axis_angle(&Vector3::z_axis(), bend_angle) *
             Translation3::new(0.0, dist_out, 0.0);
 
+        let origin_to_symmetric =
+            UnitQuaternion::from_axis_angle(&Vector3::z_axis(), -bend_angle / 2.0).to_superset();
+
         JointSpec {
             dist_in,
             dist_out,
@@ -44,6 +48,7 @@ impl JointSpec {
             out_to_origin,
             origin_to_in,
             origin_to_out,
+            origin_to_symmetric,
         }
     }
 
@@ -95,6 +100,13 @@ impl JointSpec {
     /// the "out" direction of the joint and pointing out of it. The inverse of out_to_origin
     pub fn origin_to_out(&self) -> Isometry3<f64> {
         self.origin_to_out
+    }
+
+    /// A transformation that rotates from the joint's default local coordinate system to a
+    /// coordinate system where its incoming and outgoing directions both make the same angle with
+    /// the y-axis, instead of the incoming direction being aligned with the y axis.
+    pub fn origin_to_symmetric(&self) -> Isometry3<f64> {
+        self.origin_to_symmetric
     }
 }
 
