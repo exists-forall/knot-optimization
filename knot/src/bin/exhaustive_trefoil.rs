@@ -13,6 +13,7 @@ use std::cmp::Ordering;
 use std::fs::File;
 use std::process::exit;
 use std::f64::consts::PI;
+use std::f64::INFINITY;
 
 use nalgebra::Isometry3;
 
@@ -100,6 +101,18 @@ fn fill_slice<T, I: Iterator<Item = T>>(slice: &mut [T], iter: I) {
     }
 }
 
+fn update_min<T: PartialOrd>(accum: &mut T, new: T) {
+    if &new < accum {
+        *accum = new;
+    }
+}
+
+fn update_max<T: PartialOrd>(accum: &mut T, new: T) {
+    if &new > accum {
+        *accum = new;
+    }
+}
+
 fn generate_knot(spec: JointSpec, symmetry: u32, angles: [u32; NUM_JOINTS as usize]) -> Knot {
     let mut joint_transformations = [Isometry3::identity(); NUM_JOINTS as usize];
 
@@ -124,16 +137,36 @@ fn generate_knot(spec: JointSpec, symmetry: u32, angles: [u32; NUM_JOINTS as usi
 
     let symmetry_adjust_trans = vars.transform();
     let mut total_winding_angle = 0.0;
+    let mut min_z = INFINITY;
+    let mut max_z = -INFINITY;
+    let mut min_r = INFINITY;
+    let mut max_r = -INFINITY;
     for joint_trans in joint_transformations.iter() {
-        total_winding_angle += winding_angle(&spec, &(symmetry_adjust_trans * joint_trans));
+        let adjusted_trans = symmetry_adjust_trans * joint_trans;
+        total_winding_angle += winding_angle(&spec, &adjusted_trans);
+
+        let x = adjusted_trans.translation.vector.x;
+        let y = adjusted_trans.translation.vector.y;
+        let z = adjusted_trans.translation.vector.z;
+        let r = x.hypot(y);
+
+        update_min(&mut min_z, z);
+        update_max(&mut max_z, z);
+
+        update_min(&mut min_r, r);
+        update_max(&mut max_r, r);
     }
+
     let winding_goal = ((symmetry - 1) as f64) * PI / (symmetry as f64);
+    let good_winding = (total_winding_angle.abs() - winding_goal).abs() <= WINDING_ANGLE_TOLERANCE;
+    let good_z = (max_z - min_z) >= 2.0 * spec.radius();
+    let good_r = (max_r - min_r) >= 2.0 * spec.radius();
 
     Knot {
         angles,
         symmetry_adjust: vars,
         cost,
-        good_candidate: (total_winding_angle.abs() - winding_goal).abs() <= WINDING_ANGLE_TOLERANCE,
+        good_candidate: good_winding && good_z && good_r,
     }
 }
 
@@ -178,6 +211,7 @@ fn generate_reports(spec: JointSpec, symmetry: u32) -> KnotReports {
 fn main() {
     let default_symmetry_str = defaults::SYMMETRY_COUNT.to_string();
     let default_bend_angle_str = defaults::joint_spec().bend_angle().to_degrees().to_string();
+    let default_radius_str = defaults::joint_spec().radius().to_string();
 
     let matches = App::new("Exhaustive Symmetric Knot Model Generator")
         .author("William Brandon <hypercube97@gmail.com>")
@@ -204,6 +238,13 @@ fn main() {
                 .default_value(&default_bend_angle_str)
                 .help("Sets bend angle of all joints"),
         )
+        .arg(
+            Arg::with_name("radius")
+                .long("radius")
+                .value_name("FLOAT")
+                .default_value(&default_radius_str)
+                .help("Sets cylinder radius of all joints"),
+        )
         .get_matches();
 
     let output = matches.value_of("output").unwrap();
@@ -224,12 +265,20 @@ fn main() {
             exit(1);
         })
         .to_radians();
+    let radius = matches
+        .value_of("radius")
+        .unwrap()
+        .parse::<f64>()
+        .unwrap_or_else(|err| {
+            eprintln!("Invalid joint radius: {}", err);
+            exit(1);
+        });
 
     let mut file = File::create(&output).unwrap_or_else(|_| {
         eprintln!("Could not create file {}", output);
         exit(1);
     });
-    let reports = generate_reports(JointSpec::new(1.0, 1.0, bend_angle), symmetry);
+    let reports = generate_reports(JointSpec::new(1.0, 1.0, bend_angle, radius), symmetry);
     println!(
         "Serializing best {} knots to {}",
         reports.knots.len(),

@@ -16,6 +16,7 @@ pub struct JointSpec {
     dist_in: f64,
     dist_out: f64,
     bend_angle: f64,
+    radius: f64,
 
     // Computed values
     in_to_origin: Isometry3<f64>,
@@ -25,7 +26,7 @@ pub struct JointSpec {
 }
 
 impl JointSpec {
-    pub fn new(dist_in: f64, dist_out: f64, bend_angle: f64) -> JointSpec {
+    pub fn new(dist_in: f64, dist_out: f64, bend_angle: f64, radius: f64) -> JointSpec {
         let in_to_origin = Translation3::new(0.0, dist_in, 0.0).to_superset();
         let out_to_origin = Translation3::new(0.0, -dist_out, 0.0) *
             UnitQuaternion::from_axis_angle(&Vector3::z_axis(), -bend_angle);
@@ -38,6 +39,7 @@ impl JointSpec {
             dist_in,
             dist_out,
             bend_angle,
+            radius,
             in_to_origin,
             out_to_origin,
             origin_to_in,
@@ -61,6 +63,11 @@ impl JointSpec {
     /// The angle, in radians, between the "in", "mid", and "out" points of the joint.
     pub fn bend_angle(&self) -> f64 {
         self.bend_angle
+    }
+
+    /// The radius of the cylinders of the joint.  A measure of the joint's "thickness".
+    pub fn radius(&self) -> f64 {
+        self.radius
     }
 
     /// A transformation that maps the "in" point of a joint in its local coordinate system to the
@@ -148,6 +155,7 @@ struct MinimalJointSpec {
     dist_in: f64,
     dist_out: f64,
     bend_angle: f64,
+    radius: f64,
 }
 
 impl Serialize for JointSpec {
@@ -156,6 +164,7 @@ impl Serialize for JointSpec {
             dist_in: self.dist_in,
             dist_out: self.dist_out,
             bend_angle: self.bend_angle,
+            radius: self.radius,
         };
 
         params.serialize(serializer)
@@ -165,7 +174,12 @@ impl Serialize for JointSpec {
 impl<'de> Deserialize<'de> for JointSpec {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         MinimalJointSpec::deserialize(deserializer).map(|params| {
-            JointSpec::new(params.dist_in, params.dist_out, params.bend_angle)
+            JointSpec::new(
+                params.dist_in,
+                params.dist_out,
+                params.bend_angle,
+                params.radius,
+            )
         })
     }
 }
@@ -187,7 +201,7 @@ mod test {
 
     #[test]
     fn straight_joint() {
-        let spec = JointSpec::new(1.0, 2.0, 0.0);
+        let spec = JointSpec::new(1.0, 2.0, 0.0, 0.5);
 
         assert_relative_eq!(spec.dist_in(), 1.0);
         assert_relative_eq!(spec.dist_out(), 2.0);
@@ -208,7 +222,7 @@ mod test {
     #[test]
     fn bent_joint() {
         let angle = PI / 6.0;
-        let spec = JointSpec::new(1.0, 2.0, angle);
+        let spec = JointSpec::new(1.0, 2.0, angle, 0.5);
 
         assert_relative_eq!(
             spec.in_to_origin(),
@@ -232,9 +246,9 @@ mod test {
 
     #[test]
     fn connect_3() {
-        let spec1 = JointSpec::new(2.0, 1.0, PI / 4.0);
-        let spec2 = JointSpec::new(1.0, 1.0, PI / 4.0);
-        let spec3 = JointSpec::new(1.0, 1.0, PI / 4.0);
+        let spec1 = JointSpec::new(2.0, 1.0, PI / 4.0, 0.5);
+        let spec2 = JointSpec::new(1.0, 1.0, PI / 4.0, 0.5);
+        let spec3 = JointSpec::new(1.0, 1.0, PI / 4.0, 0.5);
 
         let relative_joints = [
             RelativeJoint {
@@ -290,7 +304,7 @@ mod test {
 
     #[test]
     fn discrete() {
-        let spec = JointSpec::new(1.0, 1.0, PI / 5.0);
+        let spec = JointSpec::new(1.0, 1.0, PI / 5.0, 0.5);
         let angles = [0, 1, 2, -1];
         let rel_joints = discrete_angles(spec, 16, angles.iter().cloned()).collect::<Vec<_>>();
 

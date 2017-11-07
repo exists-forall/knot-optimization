@@ -71,17 +71,11 @@ fn sliced_cylinder_mesh(r: f32, h: f32, bottom_angle: f32, top_angle: f32, res: 
 }
 
 /// Add `count` scenenodes to the given `root` `SceneNode` representing joints with geometry given
-/// by `joint_spec` using cylinders of radius `radius`. Initially, the joint `SceneNodes`s are all
-/// centered at the origin.
-pub fn add_joints(
-    root: &mut SceneNode,
-    joint_spec: &JointSpec,
-    radius: f32,
-    count: usize,
-) -> Vec<SceneNode> {
+/// by `joint_spec`. Initially, the joint `SceneNodes`s are all centered at the origin.
+pub fn add_joints(root: &mut SceneNode, joint_spec: &JointSpec, count: usize) -> Vec<SceneNode> {
 
     let cyl0_mesh = Rc::new(RefCell::new(sliced_cylinder_mesh(
-        radius,
+        joint_spec.radius() as f32,
         joint_spec.dist_in() as f32,
         0.0,
         joint_spec.bend_angle() as f32 / 2.0,
@@ -89,7 +83,7 @@ pub fn add_joints(
     )));
 
     let cyl1_mesh = Rc::new(RefCell::new(sliced_cylinder_mesh(
-        radius,
+        joint_spec.radius() as f32,
         joint_spec.dist_out() as f32,
         -joint_spec.bend_angle() as f32 / 2.0,
         0.0,

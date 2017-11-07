@@ -39,7 +39,6 @@ fn view_report(
     let mut nodes = add_joints(
         &mut group,
         spec,
-        0.5,
         report.angles.len() * (symmetry_count as usize) * 2,
     );
     let joint_transforms = at_angles(
