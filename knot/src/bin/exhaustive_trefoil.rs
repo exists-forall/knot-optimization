@@ -120,16 +120,7 @@ fn generate_knot(spec: JointSpec, symmetry: u32, angles: [u32; NUM_JOINTS as usi
     let last_joint_out = last_joint_trans * spec.origin_to_out();
     let problem = Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, symmetry);
 
-    let (vars, cost) = initial_symmetry_adjusts()
-        .map(|mut vars| {
-            for _ in 0..OPTIMIZATION_STEPS {
-                problem.optimize(&OPTIMIZATION_PARAMS, &mut vars);
-            }
-            let cost = problem.cost(&vars);
-            (vars, cost)
-        })
-        .min_by_key(|&(_, cost)| NanGreatest(cost))
-        .unwrap();
+    let (vars, cost) = problem.solve_direct();
 
     let symmetry_adjust_trans = vars.transform();
     let mut total_winding_angle = 0.0;

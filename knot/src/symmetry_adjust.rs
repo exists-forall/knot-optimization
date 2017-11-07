@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use nalgebra::{Isometry3, Translation3, Vector2, Vector3, UnitQuaternion};
 
 use symmetry;
@@ -84,6 +86,7 @@ pub struct Problem {
     num_angles: u32,
     adjacent_symmetry: UnitQuaternion<f64>,
     radial_angle_normalizer: f64,
+    symmetry_count: u32,
 }
 
 impl Problem {
@@ -121,6 +124,7 @@ impl Problem {
             num_angles,
             adjacent_symmetry,
             radial_angle_normalizer,
+            symmetry_count,
         }
     }
 
@@ -159,6 +163,37 @@ impl Problem {
         self.apply_step(vars, &differential.scale(-opt_params.descent_rate));
         differential.d_radius * differential.d_radius +
             differential.d_radial_angle * differential.d_radial_angle * self.radial_angle_normalizer
+    }
+
+    pub fn solve_direct(&self) -> (Vars, f64) {
+        let (x, y, z) = (
+            self.last_joint_out.translation.vector.x,
+            self.last_joint_out.translation.vector.y,
+            self.last_joint_out.translation.vector.z,
+        );
+
+        let radial_angle_0 = -z.atan2(y);
+        let radial_angle_1 = radial_angle_0 + PI;
+
+        let radius_0 = -x + y.hypot(z) / (PI / (self.symmetry_count as f64)).tan();
+        let radius_1 = -x + y.hypot(z) / (2.0 * PI / (self.symmetry_count as f64)).tan();
+
+        let vars_0 = Vars {
+            radial_angle: radial_angle_0,
+            radius: radius_0,
+        };
+        let vars_1 = Vars {
+            radial_angle: radial_angle_1,
+            radius: radius_1,
+        };
+
+        let cost_0 = self.cost(&vars_0);
+        let cost_1 = self.cost(&vars_1);
+        if cost_0 <= cost_1 {
+            (vars_0, cost_0)
+        } else {
+            (vars_1, cost_1)
+        }
     }
 }
 

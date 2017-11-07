@@ -87,6 +87,7 @@ fn main() {
                         Key::Down => adjust.radius -= 0.1,
                         Key::Left => adjust.radial_angle -= 0.1,
                         Key::Right => adjust.radial_angle += 0.1,
+                        Key::Enter => adjust = problem.solve_direct().0,
                         _ => {}
                     }
                 }
