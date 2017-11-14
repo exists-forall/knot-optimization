@@ -24,6 +24,7 @@ use knot::defaults;
 use knot::defaults::{COST_PARAMS, NUM_ANGLES};
 use knot::report::{KnotReport, KnotReports, JointsParity};
 use knot::filter::{points, WindingAngles};
+use knot::cost::Costs;
 
 use rayon::prelude::*;
 use rayon::prelude::IntoParallelIterator;
@@ -58,6 +59,7 @@ struct Knot {
     angles: [u32; NUM_JOINTS as usize],
     symmetry_adjust: symmetry_adjust::Vars,
     cost: f64,
+    costs: Costs,
     good_candidate: bool,
 }
 
@@ -142,6 +144,9 @@ fn generate_knot(
 
     let (vars, cost) = problem.solve_direct();
 
+    // TODO: Avoid redundnant computation with solve_direct
+    let costs = problem.costs(&vars);
+
     let symmetry_adjust_trans = vars.transform();
     let adjusted_points = points(spec, joint_transformations.iter().cloned()).map(
         |point| symmetry_adjust_trans * point,
@@ -173,6 +178,7 @@ fn generate_knot(
         angles,
         symmetry_adjust: vars,
         cost,
+        costs,
         good_candidate: good_winding && good_z && good_r,
     }
 }
@@ -207,6 +213,7 @@ fn generate_reports(
             KnotReport {
                 angles: knot.angles.iter().map(|&angle| angle as i32).collect(),
                 symmetry_adjust: knot.symmetry_adjust,
+                costs: knot.costs,
             }
         })
         .collect();

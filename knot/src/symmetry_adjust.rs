@@ -3,7 +3,7 @@ use std::f64::consts::PI;
 use nalgebra::{Isometry3, Translation3, Vector2, Vector3, UnitQuaternion};
 
 use symmetry;
-use cost::{CostParams, cost_opposing};
+use cost::{CostParams, cost_opposing, costs_opposing, Costs};
 
 /// Analog parameters for how a chain of joints can be positioned in space with symmetry.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -129,6 +129,20 @@ impl Problem {
             symmetry_count,
             skip,
         }
+    }
+
+    /// Compute the costs (measures of how badly the joint chain links up with the nearest copy of
+    /// itself) for the given placement parameters.
+    pub fn costs(&self, vars: &Vars) -> Costs {
+        let adjust = vars.transform();
+        let adjusted_last_joint_out = adjust * self.last_joint_out;
+        let opposing_last_joint_out = self.adjacent_symmetry * adjusted_last_joint_out;
+        costs_opposing(
+            &self.cost_params.thresholds,
+            self.num_angles,
+            &adjusted_last_joint_out,
+            &opposing_last_joint_out,
+        )
     }
 
     /// Compute the cost (a measure of how badly the joint chain links up with the nearest copy of
