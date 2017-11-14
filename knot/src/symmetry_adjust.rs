@@ -87,6 +87,7 @@ pub struct Problem {
     adjacent_symmetry: UnitQuaternion<f64>,
     radial_angle_normalizer: f64,
     symmetry_count: u32,
+    skip: u32,
 }
 
 impl Problem {
@@ -110,8 +111,9 @@ impl Problem {
         last_joint_out: Isometry3<f64>,
         num_angles: u32,
         symmetry_count: u32,
+        skip: u32,
     ) -> Problem {
-        let adjacent_symmetry = symmetry::adjacent_symmetry(symmetry_count);
+        let adjacent_symmetry = symmetry::adjacent_symmetry(symmetry_count, skip);
         let radial_angle_normalizer = Vector2::new(
             last_joint_out.translation.vector.y,
             last_joint_out.translation.vector.z,
@@ -125,6 +127,7 @@ impl Problem {
             adjacent_symmetry,
             radial_angle_normalizer,
             symmetry_count,
+            skip,
         }
     }
 
@@ -175,8 +178,12 @@ impl Problem {
         let radial_angle_0 = -z.atan2(y);
         let radial_angle_1 = radial_angle_0 + PI;
 
-        let radius_0 = -x + y.hypot(z) / (PI / (self.symmetry_count as f64)).tan();
-        let radius_1 = -x + y.hypot(z) / (2.0 * PI / (self.symmetry_count as f64)).tan();
+        // TODO: Document the reasoning behind these formulae and determine whether or not they ever
+        // miss a solution.
+        let radius_0 = -x +
+            y.hypot(z) / ((self.skip as f64) * PI / (self.symmetry_count as f64)).tan();
+        let radius_1 = -x +
+            y.hypot(z) / (-(self.skip as f64) * PI / (self.symmetry_count as f64)).tan();
 
         let vars_0 = Vars {
             radial_angle: radial_angle_0,

@@ -28,13 +28,15 @@ pub fn symmetries(count: u32) -> impl Iterator<Item = UnitQuaternion<f64>> {
     })
 }
 
-/// Give the "first" non-identity dihedral-n symmetry in three dimensions. If you think of each
-/// symmetry as a slice of a 2n-slice pizza, this gives the transformation from the first slice
-/// to its counterclockwise neighbor. (Perhaps counterintuitively, this corresponds to the *fourth*
-/// symmetry yielded by `symmetries`.)
-pub fn adjacent_symmetry(count: u32) -> UnitQuaternion<f64> {
-    (UnitQuaternion::from_axis_angle(&Vector3::z_axis(), 2.0 * PI / (count as f64)) *
-         quaternion_x_pi()).to_superset()
+/// Give the dihedral-n symmetry which is `skip` "steps" away from the identity, in three
+/// dimensions. If you think of each symmetry as a slice of a 2n-slice pizza, `skip = 1` gives the
+/// transformation from the first slice to its counterclockwise neighbor. (Perhaps
+/// counterintuitively, this example corresponds to the *fourth* symmetry yielded by `symmetries`.)
+pub fn adjacent_symmetry(count: u32, skip: u32) -> UnitQuaternion<f64> {
+    (UnitQuaternion::from_axis_angle(
+        &Vector3::z_axis(),
+        2.0 * (skip as f64) * PI / (count as f64),
+    ) * quaternion_x_pi()).to_superset()
 }
 
 #[cfg(test)]

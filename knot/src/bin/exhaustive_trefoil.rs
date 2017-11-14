@@ -114,6 +114,7 @@ fn update_max<T: PartialOrd>(accum: &mut T, new: T) {
 fn generate_knot(
     spec: JointSpec,
     symmetry: u32,
+    skip: u32,
     angles: [u32; NUM_JOINTS as usize],
     parity: JointsParity,
 ) -> Knot {
@@ -137,7 +138,7 @@ fn generate_knot(
     let last_joint_trans = joint_transformations.last().unwrap();
 
     let last_joint_out = last_joint_trans * spec.origin_to_out();
-    let problem = Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, symmetry);
+    let problem = Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, symmetry, skip);
 
     let (vars, cost) = problem.solve_direct();
 
@@ -162,11 +163,11 @@ fn generate_knot(
         update_max(&mut max_r, r);
     }
 
-    let winding_goal = ((symmetry - 1) as f64) * PI / (symmetry as f64);
+    let winding_goal = (skip as f64) * PI / (symmetry as f64);
     let good_winding = (winding_angles.total().abs() - winding_goal).abs() <=
         WINDING_ANGLE_TOLERANCE;
     let good_z = (max_z - min_z) >= spec.radius();
-    let good_r = (max_r - min_r) >= 2.0 * spec.radius();
+    let good_r = (max_r - min_r) >= 2.0 * spec.radius() && min_r >= spec.radius();
 
     Knot {
         angles,
@@ -176,10 +177,10 @@ fn generate_knot(
     }
 }
 
-fn generate_knots(spec: JointSpec, symmetry: u32, parity: JointsParity) -> Vec<Knot> {
+fn generate_knots(spec: JointSpec, symmetry: u32, skip: u32, parity: JointsParity) -> Vec<Knot> {
     println!("Generating {} candidate knots", NUM_ANGLES.pow(NUM_JOINTS));
     let mut knots = exhaustive!(NUM_ANGLES; NUM_JOINTS)
-        .map(|angles| generate_knot(spec, symmetry, angles, parity))
+        .map(|angles| generate_knot(spec, symmetry, skip, angles, parity))
         .filter(|knot| knot.good_candidate)
         .collect::<Vec<_>>();
 
@@ -192,8 +193,13 @@ fn generate_knots(spec: JointSpec, symmetry: u32, parity: JointsParity) -> Vec<K
     knots
 }
 
-fn generate_reports(spec: JointSpec, symmetry: u32, parity: JointsParity) -> KnotReports {
-    let knots = generate_knots(spec, symmetry, parity);
+fn generate_reports(
+    spec: JointSpec,
+    symmetry: u32,
+    skip: u32,
+    parity: JointsParity,
+) -> KnotReports {
+    let knots = generate_knots(spec, symmetry, skip, parity);
 
     let reports = knots[0..KEEP_COUNT.min(knots.len())]
         .iter()
@@ -217,6 +223,7 @@ fn generate_reports(spec: JointSpec, symmetry: u32, parity: JointsParity) -> Kno
 
 fn main() {
     let default_symmetry_str = defaults::SYMMETRY_COUNT.to_string();
+    let default_skip_str = (defaults::SYMMETRY_COUNT - 1).to_string();
     let default_bend_angle_str = defaults::joint_spec().bend_angle().to_degrees().to_string();
     let default_radius_str = defaults::joint_spec().radius().to_string();
 
@@ -237,6 +244,13 @@ fn main() {
                 .value_name("INT")
                 .default_value(&default_symmetry_str)
                 .help("Sets dihedral-N symmetry"),
+        )
+        .arg(
+            Arg::with_name("skip")
+                .long("skip")
+                .value_name("INT")
+                .default_value(&default_skip_str)
+                .help("Sets how many times the knot winds around the z axis"),
         )
         .arg(
             Arg::with_name("bend-angle")
@@ -264,6 +278,14 @@ fn main() {
         .parse::<u32>()
         .unwrap_or_else(|err| {
             eprintln!("Invalid symmetry: {}", err);
+            exit(1);
+        });
+    let skip = matches
+        .value_of("skip")
+        .unwrap()
+        .parse::<u32>()
+        .unwrap_or_else(|err| {
+            eprintln!("Invalid skip: {}", err);
             exit(1);
         });
     let bend_angle = matches
@@ -296,6 +318,7 @@ fn main() {
     let reports = generate_reports(
         JointSpec::new(1.0, 1.0, bend_angle, radius),
         symmetry,
+        skip,
         parity,
     );
     println!(

@@ -48,8 +48,13 @@ fn main() {
 
     let last_joint_out = joint_transforms.last().unwrap() * spec.origin_to_out();
 
-    let problem =
-        symmetry_adjust::Problem::new(COST_PARAMS, last_joint_out, NUM_ANGLES, SYMMETRY_COUNT);
+    let problem = symmetry_adjust::Problem::new(
+        COST_PARAMS,
+        last_joint_out,
+        NUM_ANGLES,
+        SYMMETRY_COUNT,
+        SYMMETRY_COUNT - 1,
+    );
 
     let mut window = Window::new("Trefoil");
     window.set_light(Light::StickToCamera);

@@ -45,5 +45,11 @@ pub fn rand_problem<R: Rng>(
     symmetry_count: u32,
 ) -> Problem {
     let last_joint_out = rand_joint_trans(rng);
-    Problem::new(cost_params, last_joint_out, num_angles, symmetry_count)
+    Problem::new(
+        cost_params,
+        last_joint_out,
+        num_angles,
+        symmetry_count,
+        symmetry_count - 1,
+    )
 }
