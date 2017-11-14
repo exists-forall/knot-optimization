@@ -27,63 +27,99 @@ use knot::symmetry::symmetries;
 use knot::visualize::joint_render::add_joints;
 use knot::report::{KnotReport, KnotReports, JointsParity};
 
-fn view_report(
-    root: &mut SceneNode,
-    num_angles: u32,
-    spec: &JointSpec,
-    symmetry_count: u32,
-    parity: JointsParity,
-    report: &KnotReport,
-) -> SceneNode {
-    let mut group = root.add_group();
+struct ReportsView {
+    window: Window,
+    camera: ArcBall,
+    reports: KnotReports,
+    viewed: Option<SceneNode>,
+}
 
-    let mut nodes = add_joints(
-        &mut group,
-        spec,
-        (symmetry_count as usize) *
-            (2 * report.angles.len() +
-                 match parity {
-                     JointsParity::Even => 0,
-                     JointsParity::Odd => 1,
-                 }),
-    );
-    let joint_transforms = at_angles(
-        discrete_angles(*spec, num_angles, report.angles.iter().cloned()),
-        match parity {
-            JointsParity::Even => Isometry3::identity(),
-            JointsParity::Odd => spec.origin_to_symmetric() * spec.origin_to_out(),
-        },
-    ).collect::<Vec<_>>();
-
-    let adjust_trans = report.symmetry_adjust.transform();
-
-    let mut node_i = 0;
-    let mut first_in_horseshoe = true;
-    for sym_trans in symmetries(symmetry_count) {
-        match parity {
-            JointsParity::Even => {}
-            JointsParity::Odd => {
-                if first_in_horseshoe {
-                    nodes[node_i].set_local_transformation(
-                        (sym_trans * adjust_trans * spec.origin_to_symmetric())
-                            .to_superset(),
-                    );
-                    nodes[node_i].set_color(0.2, 0.2, 0.2);
-                    node_i += 1;
-                }
-            }
-        }
-        first_in_horseshoe = !first_in_horseshoe;
-        for joint_trans in &joint_transforms {
-            nodes[node_i].set_local_transformation(
-                (sym_trans * adjust_trans * joint_trans)
-                    .to_superset(),
-            );
-            node_i += 1;
+impl ReportsView {
+    fn new(window: Window, reports: KnotReports) -> Self {
+        ReportsView {
+            window,
+            camera: ArcBall::new(Point3::new(0.0, 0.0, 25.0), Point3::origin()),
+            reports,
+            viewed: None,
         }
     }
 
-    group
+    fn view_report(&mut self, i: usize) {
+        if i >= self.reports.knots.len() {
+            return;
+        }
+
+        let report = &self.reports.knots[i];
+
+        println!("Viewing report {}", i);
+        println!("{:#?}", report);
+
+        match self.viewed {
+            Some(ref mut prev) => self.window.remove(prev),
+            None => {}
+        }
+
+        let mut group = self.window.scene_mut().add_group();
+
+        let mut nodes = add_joints(
+            &mut group,
+            &self.reports.joint_spec,
+            (self.reports.symmetry_count as usize) *
+                (2 * report.angles.len() +
+                     match self.reports.parity {
+                         JointsParity::Even => 0,
+                         JointsParity::Odd => 1,
+                     }),
+        );
+        let joint_transforms = at_angles(
+            discrete_angles(
+                self.reports.joint_spec,
+                self.reports.num_angles,
+                report.angles.iter().cloned(),
+            ),
+            match self.reports.parity {
+                JointsParity::Even => Isometry3::identity(),
+                JointsParity::Odd => {
+                    self.reports.joint_spec.origin_to_symmetric() *
+                        self.reports.joint_spec.origin_to_out()
+                }
+            },
+        ).collect::<Vec<_>>();
+
+        let adjust_trans = report.symmetry_adjust.transform();
+
+        let mut node_i = 0;
+        let mut first_in_horseshoe = true;
+        for sym_trans in symmetries(self.reports.symmetry_count) {
+            match self.reports.parity {
+                JointsParity::Even => {}
+                JointsParity::Odd => {
+                    if first_in_horseshoe {
+                        nodes[node_i].set_local_transformation(
+                            (sym_trans * adjust_trans *
+                                 self.reports.joint_spec.origin_to_symmetric())
+                                .to_superset(),
+                        );
+                        nodes[node_i].set_color(0.2, 0.2, 0.2);
+                        node_i += 1;
+                    }
+                }
+            }
+            first_in_horseshoe = !first_in_horseshoe;
+            for joint_trans in &joint_transforms {
+                nodes[node_i].set_local_transformation(
+                    (sym_trans * adjust_trans * joint_trans).to_superset(),
+                );
+                node_i += 1;
+            }
+        }
+
+        self.viewed = Some(group);
+    }
+
+    fn render(&mut self) -> bool {
+        self.window.render_with_camera(&mut self.camera)
+    }
 }
 
 fn main() {
@@ -107,21 +143,14 @@ fn main() {
 
     let mut window = Window::new("Trefoil");
     window.set_light(Light::StickToCamera);
-    let mut camera = ArcBall::new(Point3::new(0.0, 0.0, 25.0), Point3::origin());
 
     let mut report_i = 0;
+    let mut reports_view = ReportsView::new(window, reports);
 
-    let mut knot_node = view_report(
-        window.scene_mut(),
-        reports.num_angles,
-        &reports.joint_spec,
-        reports.symmetry_count,
-        reports.parity,
-        &reports.knots[report_i],
-    );
+    reports_view.view_report(0);
 
-    while window.render_with_camera(&mut camera) {
-        for event in window.events().iter() {
+    while reports_view.render() {
+        for event in reports_view.window.events().iter() {
             match event.value {
                 WindowEvent::Key(_, _, Action::Release, _) => {}
                 WindowEvent::Key(code, _, _, _) => {
@@ -129,33 +158,13 @@ fn main() {
                         Key::Left => {
                             if report_i > 0 {
                                 report_i -= 1;
-                                window.remove(&mut knot_node);
-                                knot_node = view_report(
-                                    window.scene_mut(),
-                                    reports.num_angles,
-                                    &reports.joint_spec,
-                                    reports.symmetry_count,
-                                    reports.parity,
-                                    &reports.knots[report_i],
-                                );
-                                println!("Viewing report {}", report_i);
-                                println!("{:#?}", &reports.knots[report_i]);
+                                reports_view.view_report(report_i);
                             }
                         }
                         Key::Right => {
-                            if report_i < reports.knots.len() - 1 {
+                            if report_i < reports_view.reports.knots.len() - 1 {
                                 report_i += 1;
-                                window.remove(&mut knot_node);
-                                knot_node = view_report(
-                                    window.scene_mut(),
-                                    reports.num_angles,
-                                    &reports.joint_spec,
-                                    reports.symmetry_count,
-                                    reports.parity,
-                                    &reports.knots[report_i],
-                                );
-                                println!("Viewing report {}", report_i);
-                                println!("{:#?}", &reports.knots[report_i]);
+                                reports_view.view_report(report_i);
                             }
                         }
                         _ => {}
