@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::f64::consts::{PI, FRAC_PI_2};
 
 use nalgebra::{Isometry3, Translation3, Vector2, Vector3, UnitQuaternion};
 
@@ -76,6 +76,12 @@ impl VarsDifferential {
             d_radial_angle: self.d_radial_angle * factor,
         }
     }
+}
+
+/// Cotangent.
+/// **Thousands of times faster** than reciprocal of tangent for arguments very close to `PI/2`.
+fn cot(theta: f64) -> f64 {
+    (FRAC_PI_2 - theta).tan()
 }
 
 /// A joint-chain-positioning optimization problem to be solved.
@@ -194,11 +200,9 @@ impl Problem {
 
         // TODO: Document the reasoning behind these formulae and determine whether or not they ever
         // miss a solution.
-        let radius_0 = -x +
-            y.hypot(z) / ((self.skip as f64) * PI / (self.symmetry_count as f64)).tan();
-        let radius_1 = -x +
-            y.hypot(z) / (-(self.skip as f64) * PI / (self.symmetry_count as f64)).tan();
-
+        let offset = y.hypot(z) * cot((self.skip as f64) * PI / (self.symmetry_count as f64));
+        let radius_0 = -x + offset;
+        let radius_1 = -x - offset;
         let vars_0 = Vars {
             radial_angle: radial_angle_0,
             radius: radius_0,
