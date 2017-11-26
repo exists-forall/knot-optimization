@@ -22,10 +22,10 @@ use glfw::{Action, WindowEvent, Key};
 use nalgebra::{Isometry3, Point3};
 use alga::general::SubsetOf;
 
-use knot::joint::{JointSpec, discrete_angles, at_angles};
+use knot::joint::{discrete_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::visualize::joint_render::add_joints;
-use knot::report::{KnotReport, KnotReports, JointsParity};
+use knot::report::{KnotReports, JointsParity};
 
 struct ReportsView {
     window: Window,
