@@ -20,12 +20,13 @@ use glfw::{Action, WindowEvent, Key};
 use nalgebra::{Isometry3, Point3};
 use alga::general::SubsetOf;
 
-use knot::joint::{discrete_angles, at_angles};
+use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::symmetry_adjust;
 use knot::visualize::joint_render::add_joints;
 use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, INITIAL_SYMMETRY_ADJUST,
                      SYMMETRY_COUNT, joint_spec};
+use knot::report::JointsParity;
 
 fn main() {
     let spec = joint_spec();
@@ -36,11 +37,16 @@ fn main() {
                 exit(1);
             })
         }
-        None => vec![2, 0, 15, 0, 0],
+        None => vec![4, 0, 15, 0, 0],
     };
 
     let joint_transforms = at_angles(
-        discrete_angles(spec, NUM_ANGLES, rel_joint_angles.iter().cloned()),
+        discrete_symmetric_angles(
+            spec,
+            NUM_ANGLES,
+            JointsParity::Even,
+            rel_joint_angles.iter().cloned(),
+        ),
         Isometry3::identity(),
     ).collect::<Vec<_>>();
 

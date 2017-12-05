@@ -17,7 +17,7 @@ use std::f64::INFINITY;
 
 use nalgebra::Isometry3;
 
-use knot::joint::{JointSpec, at_angles, discrete_angles};
+use knot::joint::{JointSpec, at_angles, discrete_symmetric_angles};
 use knot::symmetry_adjust;
 use knot::symmetry_adjust::Problem;
 use knot::defaults;
@@ -128,9 +128,10 @@ fn generate_knot(
     fill_slice(
         &mut joint_transformations,
         at_angles(
-            discrete_angles(
+            discrete_symmetric_angles(
                 spec,
                 NUM_ANGLES,
+                parity,
                 angles.iter().cloned().map(|angle| angle as i32),
             ),
             match parity {

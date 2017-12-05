@@ -22,7 +22,7 @@ use glfw::{Action, WindowEvent, Key};
 use nalgebra::{Isometry3, Point3};
 use alga::general::SubsetOf;
 
-use knot::joint::{discrete_angles, at_angles};
+use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::visualize::joint_render::add_joints;
 use knot::report::{KnotReports, JointsParity};
@@ -90,9 +90,10 @@ impl ReportsView {
                      }),
         );
         let joint_transforms = at_angles(
-            discrete_angles(
+            discrete_symmetric_angles(
                 self.reports.joint_spec,
                 self.reports.num_angles,
+                self.reports.parity,
                 report.angles.iter().cloned(),
             ),
             match self.reports.parity {

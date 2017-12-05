@@ -5,6 +5,8 @@ use alga::general::SubsetOf;
 
 use serde::{Serialize, Serializer, Deserialize, Deserializer};
 
+use report::JointsParity;
+
 /// A specification of the geometry of a joint. A joint is a geometric figure in 3D space consisting
 /// of three points: an "in" point, a "midpoint," and an "out" point. A joint has a standard
 /// coordinate system, with the origin at its midpoint, the y-axis aligned with the line from the
@@ -150,6 +152,37 @@ pub fn discrete_angles<I: Iterator<Item = i32>>(
     let angle_step = (2.0 * PI) / (num_angles as f64);
 
     angles.map(move |angle| {
+        RelativeJoint {
+            spec: spec,
+            angle: angle_step * (angle as f64),
+        }
+    })
+}
+
+/// Produce a sequence of joint placements where each joint's rotation is an integer multiple of
+/// some fraction of a revolution (with the denominator given by `num_angles`), assuming that the
+/// first joint will be attached to a copy of itself with the same rotation applied.  Return an
+/// iterator suitable for use with `at_angles`.
+pub fn discrete_symmetric_angles<I: Iterator<Item = i32>>(
+    spec: JointSpec,
+    num_angles: u32,
+    parity: JointsParity,
+    angles: I,
+) -> impl Iterator<Item = RelativeJoint> {
+    let angle_step = (2.0 * PI) / (num_angles as f64);
+
+    let mut self_attached = match parity {
+        JointsParity::Even => true,
+        JointsParity::Odd => false,
+    };
+
+    angles.map(move |angle| if self_attached {
+        self_attached = false;
+        RelativeJoint {
+            spec: spec,
+            angle: angle_step * (angle as f64) * 0.5,
+        }
+    } else {
         RelativeJoint {
             spec: spec,
             angle: angle_step * (angle as f64),
