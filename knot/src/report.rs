@@ -5,6 +5,7 @@ use cost::{CostParams, Costs};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KnotReport {
     pub angles: Vec<i32>,
+    pub final_angle: f64,
     pub symmetry_adjust: symmetry_adjust::Vars,
     pub costs: Costs,
 }

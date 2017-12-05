@@ -1,6 +1,8 @@
 use std::f64::consts::PI;
 use std::f64::INFINITY;
 
+use approx_locking_angle::locking_angle_aligned;
+
 use nalgebra::{Isometry3, Vector3, UnitQuaternion, Quaternion};
 use alga::general::SubsetOf;
 
@@ -85,12 +87,9 @@ pub fn costs_aligned(
 
         // Locking angle cost
         let locking_cost = if axis_cost < thresholds.axis_for_locking {
-            let align = UnitQuaternion::rotation_between(&axis_1, &axis_0)
-                .unwrap_or(UnitQuaternion::identity());
-            let aligned_rel_rotation = trans_0.rotation.inverse() * align * trans_1.rotation;
-
-            let locking_angle = aligned_rel_rotation.angle();
-            let locking_interval_frac = (locking_angle / (2.0 * PI) * (num_angles as f64)) % 1.0;
+            // TODO: Avoid redundant recomputation of axes
+            let locking_angle = locking_angle_aligned(num_angles, trans_0, trans_1);
+            let locking_interval_frac = locking_angle % 1.0;
 
             // From the observation that x^2 * (1 - x)^2 has local minima at x = 0 and x = 1 and a
             // local maximum at x = 1/2, at which it attains a maximum value of 1/16, and is

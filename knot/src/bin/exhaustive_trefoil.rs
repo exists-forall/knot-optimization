@@ -25,6 +25,8 @@ use knot::defaults::{COST_PARAMS, NUM_ANGLES};
 use knot::report::{KnotReport, KnotReports, JointsParity};
 use knot::filter::{points, WindingAngles};
 use knot::cost::Costs;
+use knot::approx_locking_angle::locking_angle_opposing;
+use knot::symmetry::adjacent_symmetry;
 
 use rayon::prelude::*;
 use rayon::prelude::IntoParallelIterator;
@@ -57,6 +59,7 @@ const KEEP_COUNT: usize = 2048;
 #[derive(Clone, Copy)]
 struct Knot {
     angles: [u32; NUM_JOINTS as usize],
+    final_angle: f64,
     symmetry_adjust: symmetry_adjust::Vars,
     cost: f64,
     costs: Costs,
@@ -174,12 +177,20 @@ fn generate_knot(
     let good_z = (max_z - min_z) >= spec.radius();
     let good_r = (max_r - min_r) >= 2.0 * spec.radius() && min_r >= spec.radius();
 
+    // TODO: avoid redundant computation
+    let final_angle = locking_angle_opposing(
+        NUM_ANGLES,
+        &(symmetry_adjust_trans * last_joint_out),
+        &(adjacent_symmetry(symmetry, skip) * symmetry_adjust_trans * last_joint_out),
+    );
+
     Knot {
         angles,
         symmetry_adjust: vars,
         cost,
         costs,
         good_candidate: good_winding && good_z && good_r,
+        final_angle,
     }
 }
 
@@ -212,6 +223,7 @@ fn generate_reports(
         .map(|knot| {
             KnotReport {
                 angles: knot.angles.iter().map(|&angle| angle as i32).collect(),
+                final_angle: knot.final_angle,
                 symmetry_adjust: knot.symmetry_adjust,
                 costs: knot.costs,
             }
