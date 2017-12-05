@@ -34,6 +34,10 @@ struct ReportsView {
     viewed: Option<SceneNode>,
 }
 
+fn from_hex_color(r: u8, g: u8, b: u8) -> (f32, f32, f32) {
+    ((r as f32) / 255.0, (g as f32) / 255.0, (b as f32) / 255.0)
+}
+
 impl ReportsView {
     fn new(window: Window, reports: KnotReports) -> Self {
         ReportsView {
@@ -42,6 +46,20 @@ impl ReportsView {
             reports,
             viewed: None,
         }
+    }
+
+    fn color(&self, i: usize) -> (f32, f32, f32) {
+        let colors = [
+            // From http://clrs.cc/
+            from_hex_color(0xFF, 0x41, 0x36), // red
+            from_hex_color(0xFF, 0x85, 0x1B), // orange
+            from_hex_color(0xFF, 0xDC, 0x00), // yellow
+            from_hex_color(0x2E, 0xCC, 0x40), // green
+            from_hex_color(0x00, 0x74, 0xD9), // blue
+            from_hex_color(0xB1, 0x0D, 0xC9), // purple
+        ];
+
+        colors[i % colors.len()]
     }
 
     fn view_report(&mut self, i: usize) {
@@ -106,10 +124,12 @@ impl ReportsView {
                 }
             }
             first_in_horseshoe = !first_in_horseshoe;
-            for joint_trans in &joint_transforms {
+            for (joint_i, joint_trans) in joint_transforms.iter().enumerate() {
                 nodes[node_i].set_local_transformation(
                     (sym_trans * adjust_trans * joint_trans).to_superset(),
                 );
+                let (r, g, b) = self.color(joint_i);
+                nodes[node_i].set_color(r, g, b);
                 node_i += 1;
             }
         }
@@ -143,6 +163,10 @@ fn main() {
 
     let mut window = Window::new("Trefoil");
     window.set_light(Light::StickToCamera);
+    {
+        let (r, g, b) = from_hex_color(0x11, 0x11, 0x11);
+        window.set_background_color(r, g, b);
+    }
 
     let mut report_i = 0;
     let mut reports_view = ReportsView::new(window, reports);
