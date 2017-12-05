@@ -21,4 +21,6 @@ pub mod rand_problem;
 pub mod report;
 pub mod visualize;
 pub mod filter;
+pub mod isometry_adjust;
+pub mod continuous_optimize;
 pub mod approx_locking_angle;
