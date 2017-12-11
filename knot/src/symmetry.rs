@@ -1,4 +1,5 @@
 use std::f64::consts::PI;
+use std::f64::EPSILON;
 
 use nalgebra::{Vector3, UnitQuaternion, Quaternion};
 use alga::general::SubsetOf;
@@ -82,11 +83,12 @@ mod test {
 
     #[test]
     fn d3_adjacent() {
-        let d3_adjacent = adjacent_symmetry(3);
+        let d3_adjacent = adjacent_symmetry(3, 2);
 
         assert_relative_eq!(
             d3_adjacent * Vector3::x_axis().to_superset(),
-            Vector3::new((2.0 * PI / 3.0).cos(), (2.0 * PI / 3.0).sin(), 0.0)
+            Vector3::new((-2.0 * PI / 3.0).cos(), (-2.0 * PI / 3.0).sin(), 0.0),
+            epsilon = 2.0 * EPSILON // more error here than usual
         );
         assert_relative_eq!(d3_adjacent * Vector3::z_axis(), -Vector3::z_axis());
     }
