@@ -1,5 +1,4 @@
 use std::f64::consts::PI;
-use std::f64::EPSILON;
 
 use nalgebra::{Vector3, UnitQuaternion, Quaternion};
 use alga::general::SubsetOf;
@@ -43,6 +42,7 @@ pub fn adjacent_symmetry(count: u32, skip: u32) -> UnitQuaternion<f64> {
 #[cfg(test)]
 mod test {
     use symmetry::*;
+    use std::f64::EPSILON;
 
     #[test]
     fn d3() {

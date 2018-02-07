@@ -1,4 +1,3 @@
-use std::f64::consts::PI;
 use std::f64::INFINITY;
 
 use approx_locking_angle::locking_angle_aligned;
@@ -162,6 +161,7 @@ pub fn cost_opposing(
 mod test {
     use cost::*;
     use nalgebra::Translation3;
+    use std::f64::consts::PI;
 
     fn assert_symmetry(
         thresholds: &Thresholds,
