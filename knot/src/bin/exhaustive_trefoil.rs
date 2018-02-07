@@ -23,7 +23,7 @@ use knot::symmetry_adjust::Problem;
 use knot::defaults;
 use knot::defaults::{COST_PARAMS, NUM_ANGLES};
 use knot::report::{KnotReport, KnotReports, JointsParity};
-use knot::filter::{points, WindingAngles};
+use knot::filter::{points, WindingAngles, collisions_with_symmetry, CollisionOutcome};
 use knot::cost::Costs;
 use knot::approx_locking_angle::locking_angle_opposing;
 use knot::symmetry::adjacent_symmetry;
@@ -178,6 +178,24 @@ fn generate_knot(
     let good_z = (max_z - min_z) >= spec.radius();
     let good_r = (max_r - min_r) >= 2.0 * spec.radius() && min_r >= spec.radius();
 
+    let good = if good_winding && good_z && good_r {
+        // TODO: Is it really best to recompute this?  In principle we could cache it in a
+        // stack-allocated structure, although the compile-time-size issues could be tricky.
+        // let centers = include_midpoints(points(spec, joint_transformations.iter().cloned()))
+        //     .map(|point| symmetry_adjust_trans * point);
+        let centers = points(spec, joint_transformations.iter().cloned()).map(
+            |point| symmetry_adjust_trans * point,
+        );
+
+        let collision_outcome = collisions_with_symmetry(symmetry, skip, centers, spec.radius());
+        match collision_outcome {
+            CollisionOutcome::NoCollisions => true,
+            CollisionOutcome::Collision => false,
+        }
+    } else {
+        false
+    };
+
     // TODO: avoid redundant computation
     let final_angle = locking_angle_opposing(
         NUM_ANGLES,
@@ -190,7 +208,7 @@ fn generate_knot(
         symmetry_adjust: vars,
         cost,
         costs,
-        good_candidate: good_winding && good_z && good_r,
+        good_candidate: good,
         final_angle,
     }
 }

@@ -1,4 +1,5 @@
 #![feature(conservative_impl_trait)]
+#![feature(inclusive_range)]
 
 extern crate nalgebra;
 extern crate alga;
@@ -24,3 +25,5 @@ pub mod filter;
 pub mod isometry_adjust;
 pub mod continuous_optimize;
 pub mod approx_locking_angle;
+pub mod collision_grid;
+pub mod collision_grid_trivial;
