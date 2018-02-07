@@ -30,6 +30,8 @@ use knot::symmetry::{adjacent_symmetry, symmetries};
 
 const TAU: f64 = 2.0 * PI;
 
+const SHOW_COST_STEPS: bool = true;
+
 fn from_curve<F: Fn(f64) -> Point3<f64>>(
     count: usize,
     start: f64,
@@ -148,6 +150,8 @@ fn main() {
         },
     );
 
+    let mut step = 0;
+
     while window.render() {
         for event in window.events().iter() {
             match event.value {
@@ -237,7 +241,11 @@ fn main() {
             }
         }
         for _ in 0..30 {
-            chain.optimize();
+            let cost = chain.optimize();
+            if SHOW_COST_STEPS {
+                println!("{{{}, {}}},", step, cost);
+            }
+            step += 1;
 
             // experimental repulsive force
             let forces = (0..chain.joints.len())

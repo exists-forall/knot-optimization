@@ -67,11 +67,13 @@ impl Chain {
         )
     }
 
-    pub fn optimize(&mut self) {
+    pub fn optimize(&mut self) -> f64 {
         let joint_radius = (self.spec.dist_in() + self.spec.dist_out()) * 0.5;
 
         let mut pre_joint = self.get_phantom(&self.pre_phantom);
         let mut pre_leg = self.pre_phantom.leg;
+
+        let mut curr_total_cost = 0.0;
 
         for i in 0..self.joints.len() {
             let joint = self.joints[i];
@@ -81,7 +83,7 @@ impl Chain {
                 (self.get_phantom(&self.post_phantom), self.post_phantom.leg)
             };
 
-            let diff = iso_adj::differentiate(&self.steps, joint, |new_joint| {
+            let (curr_joint_cost, diff) = iso_adj::differentiate(&self.steps, joint, |new_joint| {
                 let pre_cost = self.cost_between(&pre_joint, &pre_leg, &new_joint, &Leg::Incoming);
                 let post_cost =
                     self.cost_between(&new_joint, &Leg::Outgoing, &post_joint, &post_leg);
@@ -93,8 +95,12 @@ impl Chain {
                 &diff.scale(-self.descent_rate),
             );
 
+            curr_total_cost += curr_joint_cost;
+
             pre_joint = joint;
             pre_leg = Leg::Outgoing;
         }
+
+        curr_total_cost
     }
 }

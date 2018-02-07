@@ -42,7 +42,7 @@ pub fn differentiate<F: Fn(&Isometry3<f64>) -> f64>(
     steps: &Steps,
     trans_0: Isometry3<f64>,
     f: F,
-) -> IsometryDifferential {
+) -> (f64, IsometryDifferential) {
     let f_0 = f(&trans_0);
 
     let mut x_stepped = trans_0;
@@ -72,7 +72,7 @@ pub fn differentiate<F: Fn(&Isometry3<f64>) -> f64>(
         k_stepped.rotation;
     let k_rate = (f(&k_stepped) - f_0) / steps.k;
 
-    IsometryDifferential {
+    let diff = IsometryDifferential {
         d_x: x_rate,
         d_y: y_rate,
         d_z: z_rate,
@@ -80,7 +80,9 @@ pub fn differentiate<F: Fn(&Isometry3<f64>) -> f64>(
         d_i: i_rate,
         d_j: j_rate,
         d_k: k_rate,
-    }
+    };
+
+    (f_0, diff)
 }
 
 impl IsometryDifferential {
@@ -94,6 +96,11 @@ impl IsometryDifferential {
             d_j: self.d_j * factor,
             d_k: self.d_k * factor,
         }
+    }
+
+    pub fn magnitude_squ(&self, radius: f64) -> f64 {
+        self.d_x * self.d_x + self.d_y * self.d_y + self.d_z * self.d_z +
+            (self.d_i * self.d_i + self.d_j * self.d_j + self.d_k * self.d_k) / (radius * radius)
     }
 }
 
