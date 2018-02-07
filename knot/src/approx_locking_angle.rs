@@ -20,7 +20,15 @@ pub fn locking_angle_aligned(
 
     let aligned_rel_rotation = trans_0.rotation.inverse() * align * trans_1.rotation;
 
-    aligned_rel_rotation.angle() / (2.0 * PI) * (num_angles as f64)
+    let result = aligned_rel_rotation.angle() / (2.0 * PI) * (num_angles as f64);
+
+    if result.is_nan() {
+        // sometimes `align` has NaN entries when the alignment is very close.
+        // It is unclear whether this is the intended behavior of nalgebra.
+        0.0
+    } else {
+        result
+    }
 }
 
 pub fn locking_angle_opposing(
