@@ -152,6 +152,8 @@ fn main() {
 
     let mut step = 0;
 
+    let mut selected = 0;
+
     while window.render() {
         for event in window.events().iter() {
             match event.value {
@@ -186,6 +188,26 @@ fn main() {
                         Key::Left => {
                             chain.cost_params.locking_weight /= 1.5;
                             println!("Locking weight: {}", chain.cost_params.locking_weight);
+                        }
+                        Key::Up => {
+                            selected = (selected + 1) % chain.joints.len();
+                            println!("Selected {}", selected);
+                        }
+                        Key::Down => {
+                            selected = (selected + chain.joints.len() - 1) % chain.joints.len();
+                            println!("Selected {}", selected);
+                        }
+                        Key::Equal => {
+                            chain.joints[selected] = chain.joints[selected] *
+                                UnitQuaternion::from_axis_angle(&Vector3::y_axis(), TAU / 16.0);
+                        }
+                        Key::Minus => {
+                            chain.joints[selected] = chain.joints[selected] *
+                                UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -TAU / 16.0);
+                        }
+                        Key::Q => {
+                            let cost = chain.optimize();
+                            println!("{{{}, {}}},", step, cost);
                         }
                         _ => {}
                     }
@@ -240,11 +262,8 @@ fn main() {
                 }
             }
         }
-        for _ in 0..30 {
+        for i in 0..1000 {
             let cost = chain.optimize();
-            if SHOW_COST_STEPS {
-                println!("{{{}, {}}},", step, cost);
-            }
             step += 1;
 
             // experimental repulsive force
