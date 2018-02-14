@@ -33,6 +33,8 @@ const TAU: f64 = 2.0 * PI;
 
 const DEBUG_ANGLES: bool = false;
 
+const REPULSION: bool = true;
+
 fn main() {
     let cost_params = CostParams {
         dist_weight: 1.0,
@@ -180,24 +182,26 @@ fn main() {
             step += 1;
 
             // experimental repulsive force
-            let forces = (0..chain.joints.len())
-                .map(|i| {
-                    let mut force = Vector3::new(0.0, 0.0, 0.0);
-                    for (sym_i, sym) in symmetries(3).enumerate() {
-                        for j in 0..chain.joints.len() {
-                            if !(sym_i == 0 && i == j) {
-                                let diff = chain.joints[i].translation.vector -
-                                    (sym * chain.joints[j]).translation.vector;
-                                force += diff / diff.norm().powi(4);
+            if REPULSION {
+                let forces = (0..chain.joints.len())
+                    .map(|i| {
+                        let mut force = Vector3::new(0.0, 0.0, 0.0);
+                        for (sym_i, sym) in symmetries(3).enumerate() {
+                            for j in 0..chain.joints.len() {
+                                if !(sym_i == 0 && i == j) {
+                                    let diff = chain.joints[i].translation.vector -
+                                        (sym * chain.joints[j]).translation.vector;
+                                    force += diff / diff.norm().powi(4);
+                                }
                             }
                         }
-                    }
-                    force
-                })
-                .collect::<Vec<_>>();
+                        force
+                    })
+                    .collect::<Vec<_>>();
 
-            for (force, joint) in forces.iter().zip(chain.joints.iter_mut()) {
-                joint.translation.vector += force * 0.00001;
+                for (force, joint) in forces.iter().zip(chain.joints.iter_mut()) {
+                    joint.translation.vector += force * 0.00001;
+                }
             }
         }
     }
