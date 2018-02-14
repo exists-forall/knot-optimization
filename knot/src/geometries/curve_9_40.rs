@@ -14,7 +14,7 @@ use geometries::from_curve::from_curve;
 
 const TAU: f64 = 2.0 * PI;
 
-pub fn chain(chain_size: usize, cost_params: CostParams, scale: f64) -> Chain {
+pub fn chain(chain_size: usize, scale: f64, cost_params: CostParams, descent_rate: f64) -> Chain {
     Chain {
         spec: defaults::joint_spec(),
         num_angles: defaults::NUM_ANGLES,
@@ -29,7 +29,7 @@ pub fn chain(chain_size: usize, cost_params: CostParams, scale: f64) -> Chain {
             leg: Leg::Outgoing,
         },
         cost_params: cost_params,
-        descent_rate: 0.0005,
+        descent_rate,
         steps: iso_adj::Steps::new_uniform(0.000001),
         joints: from_curve(chain_size, 0.0, 1.0, |t| {
             let theta = 2.0 * TAU / 3.0 * t;

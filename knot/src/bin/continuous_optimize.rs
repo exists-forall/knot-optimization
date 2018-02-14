@@ -46,7 +46,7 @@ fn main() {
 
     let chain_size = 8;
 
-    let mut chain = curve_9_40::chain(chain_size, cost_params, 1.0);
+    let mut chain = curve_9_40::chain(chain_size, 1.0, cost_params, 0.0005);
 
     let mut window = Window::new("Continuous Optimization");
     window.set_light(Light::StickToCamera);
