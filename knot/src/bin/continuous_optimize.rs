@@ -17,16 +17,14 @@ use kiss3d::window::Window;
 use kiss3d::light::Light;
 use glfw::{Action, WindowEvent, Key};
 
-use nalgebra::{Isometry3, Point3, Translation3, Matrix3, Rotation3, UnitQuaternion, Vector3};
+use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
 
 use knot::joint::{at_angles, RelativeJoint};
 use knot::defaults;
-use knot::isometry_adjust as iso_adj;
-use knot::continuous_optimize::{Leg, PhantomJoint, Chain};
 use knot::visualize::joint_render::add_joints;
 use knot::cost::{CostParams, Thresholds};
-use knot::symmetry::{adjacent_symmetry, symmetries};
+use knot::symmetry::symmetries;
 use knot::geometries::curve_9_40;
 
 const TAU: f64 = 2.0 * PI;
@@ -177,7 +175,7 @@ fn main() {
                 }
             }
         }
-        for i in 0..1000 {
+        for _ in 0..1000 {
             chain.optimize();
             step += 1;
 
