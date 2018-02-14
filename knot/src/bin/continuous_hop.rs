@@ -19,7 +19,7 @@ const REPULSION: bool = true;
 
 const RATE: f64 = 0.02;
 
-const STEPS: u32 = 20_000;
+const STEPS: u32 = 5_000;
 
 const EPOCHS: u32 = 4;
 
