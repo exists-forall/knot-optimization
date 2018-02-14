@@ -5,8 +5,6 @@ extern crate kiss3d;
 extern crate alga;
 extern crate nalgebra;
 extern crate glfw;
-extern crate serde;
-extern crate serde_json;
 
 extern crate knot;
 
