@@ -37,7 +37,7 @@ fn main() {
     let cost_params = CostParams {
         dist_weight: 1.0,
         axis_weight: 3.0,
-        locking_weight: 0.01,
+        locking_weight: 0.17,
         thresholds: Thresholds {
             dist_for_axis: INFINITY,
             axis_for_locking: INFINITY,
@@ -46,7 +46,7 @@ fn main() {
 
     let chain_size = 8;
 
-    let mut chain = curve_9_40::chain(chain_size, 1.0, cost_params, 0.0005);
+    let mut chain = curve_9_40::chain(chain_size, 1.0, cost_params, 0.02);
 
     let mut window = Window::new("Continuous Optimization");
     window.set_light(Light::StickToCamera);
@@ -189,7 +189,7 @@ fn main() {
                                 if !(sym_i == 0 && i == j) {
                                     let diff = chain.joints[i].translation.vector -
                                         (sym * chain.joints[j]).translation.vector;
-                                    force += diff / diff.norm().powi(4);
+                                    force += diff / diff.norm().powi(5);
                                 }
                             }
                         }
@@ -198,7 +198,7 @@ fn main() {
                     .collect::<Vec<_>>();
 
                 for (force, joint) in forces.iter().zip(chain.joints.iter_mut()) {
-                    joint.translation.vector += force * 0.00001;
+                    joint.translation.vector += force * 0.002;
                 }
             }
         }
