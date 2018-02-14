@@ -17,7 +17,7 @@ const TAU: f64 = 2.0 * PI;
 
 const REPULSION: bool = true;
 
-const RATE: f64 = 0.04;
+const RATE: f64 = 0.02;
 
 const STEPS: u32 = 10_000;
 

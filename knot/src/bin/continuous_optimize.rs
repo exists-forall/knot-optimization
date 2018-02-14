@@ -31,7 +31,7 @@ const DEBUG_ANGLES: bool = false;
 
 const REPULSION: bool = true;
 
-const RATE: f64 = 0.04;
+const RATE: f64 = 0.02;
 
 fn main() {
     let cost_params = CostParams {
