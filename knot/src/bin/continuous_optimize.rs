@@ -33,6 +33,8 @@ const DEBUG_ANGLES: bool = false;
 
 const REPULSION: bool = true;
 
+const RATE: f64 = 0.04;
+
 fn main() {
     let cost_params = CostParams {
         dist_weight: 1.0,
@@ -46,7 +48,7 @@ fn main() {
 
     let chain_size = 8;
 
-    let mut chain = curve_9_40::chain(chain_size, 1.0, cost_params, 0.02);
+    let mut chain = curve_9_40::chain(chain_size, 1.0, cost_params, RATE);
 
     let mut window = Window::new("Continuous Optimization");
     window.set_light(Light::StickToCamera);
@@ -198,7 +200,7 @@ fn main() {
                     .collect::<Vec<_>>();
 
                 for (force, joint) in forces.iter().zip(chain.joints.iter_mut()) {
-                    joint.translation.vector += force * 0.002;
+                    joint.translation.vector += force * RATE * 0.1;
                 }
             }
         }
