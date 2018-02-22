@@ -10,7 +10,7 @@ use cost::CostParams;
 use symmetry::adjacent_symmetry;
 
 use geometries::spherical::spherical;
-use geometries::from_curve::from_curve;
+use geometries::from_curve::from_curve_natural_parameterize;
 
 const TAU: f64 = 2.0 * PI;
 
@@ -31,11 +31,17 @@ pub fn chain(chain_size: usize, scale: f64, cost_params: CostParams, descent_rat
         cost_params: cost_params,
         descent_rate,
         steps: iso_adj::Steps::new_uniform(0.000001),
-        joints: from_curve(chain_size, 0.0, 1.0, |t| {
-            let theta = 2.0 * TAU / 3.0 * t;
-            let phi = 1.0 * (TAU / 2.0 * t).sin();
-            let rho = 7.0 + 2.5 * (TAU / 2.0 * t).cos();
-            spherical(theta, phi, scale * rho)
-        }).collect(),
+        joints: from_curve_natural_parameterize(
+            2.7, // arc length step
+            0.01, // dt
+            0.0, // start
+            1.0, // end
+            |t| {
+                let theta = 2.0 * TAU / 3.0 * t;
+                let phi = 1.0 * (TAU / 2.0 * t).sin();
+                let rho = 7.0 + 2.5 * (TAU / 2.0 * t).cos();
+                spherical(theta, phi, scale * rho)
+            },
+        ).collect(),
     }
 }

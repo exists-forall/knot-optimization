@@ -33,7 +33,7 @@ const DEBUG_ANGLES: bool = false;
 
 fn main() {
     let mut chain = RepulsionChain::new(
-        curve_9_40::chain(CURVE_9_40_CHAIN_SIZE, 1.0, COST_PARAMS, RATE),
+        curve_9_40::chain(CURVE_9_40_CHAIN_SIZE, 0.7, COST_PARAMS, RATE),
         3,
         1,
         REPULSION_EXPONENT,
