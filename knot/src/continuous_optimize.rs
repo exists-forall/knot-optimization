@@ -163,8 +163,9 @@ impl RepulsionChain {
                         let diff = self.chain.joints[i].translation.vector -
                             (sym * self.chain.joints[j]).translation.vector;
                         self.forces[i] += diff / diff.norm() /
-                            (diff.norm() - self.chain.spec.radius() * 2.0).powi(2) *
-                            self.repulsion_strength;
+                            (diff.norm() - self.chain.spec.radius() * 2.0).powi(
+                                self.repulsion_exp,
+                            ) * self.repulsion_strength;
                     }
                 }
             }
