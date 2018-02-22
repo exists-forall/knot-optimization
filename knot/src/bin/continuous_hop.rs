@@ -20,7 +20,7 @@ const RATE: f64 = 0.02;
 
 const STEPS: u32 = 5_000;
 
-const EPOCHS: u32 = 4;
+const EPOCHS: u32 = 10;
 
 fn optimize(chain: &mut RepulsionChain, steps: u32) -> f64 {
     let mut last_cost = INFINITY;
@@ -56,6 +56,8 @@ fn main() {
     let mut best_cost = optimize(&mut best_chain, STEPS);
     println!("Original cost: {}", best_cost);
 
+    let mut steps = Vec::new();
+
     for epoch in 0..EPOCHS {
         let mut new_best = None;
         let mut new_best_cost = best_cost;
@@ -63,10 +65,16 @@ fn main() {
         println!("Best cost by epoch {}: {}", epoch, best_cost);
 
         for i in 0..chain_size {
-            for &offset in &[-1.0, 1.0] {
+            for &offset in &[-2.0, -1.0, 1.0, 2.0] {
+                let angle = if i == 0 {
+                    0.5 * offset * TAU / 16.0
+                } else {
+                    offset * TAU / 16.0
+                };
+
                 let mut offset_chain = best_chain.clone();
                 offset_chain.joints[i] = offset_chain.joints[i] *
-                    UnitQuaternion::from_axis_angle(&Vector3::y_axis(), offset * TAU / 16.0);
+                    UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
                 let cost = optimize(&mut offset_chain, STEPS);
                 println!("{} {:+}: {}", i, offset, cost);
                 if cost < new_best_cost {
@@ -79,11 +87,17 @@ fn main() {
 
         if let Some((new_best_chain, new_best_i, new_best_offset)) = new_best {
             println!("New best: {} {:+}", new_best_i, new_best_offset);
+            steps.push((new_best_i, new_best_offset));
             best_chain = new_best_chain;
             best_cost = new_best_cost;
         } else {
             println!("Couldn't find a better offset");
             break;
         }
+    }
+
+    println!("\nFinal steps:");
+    for &(i, offset) in &steps {
+        println!("{} {:+}", i, offset);
     }
 }
