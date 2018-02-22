@@ -1,4 +1,5 @@
 use std::f64::consts::PI;
+use std::f64::INFINITY;
 use std::iter::once;
 
 use joint::JointSpec;
@@ -45,4 +46,32 @@ pub const SYMMETRY_COUNT: u32 = 3;
 
 pub fn joint_spec() -> JointSpec {
     JointSpec::new(1.0, 1.0, PI / 6.0, 0.5)
+}
+
+pub mod continuous_optimization {
+    use super::*;
+
+    /// Cost parameters for gradient descent, different than cost parameters for exhaustive search!
+    pub const COST_PARAMS: CostParams = CostParams {
+        dist_weight: 1.0,
+        axis_weight: 3.0,
+        locking_weight: 0.17,
+        thresholds: Thresholds {
+            dist_for_axis: INFINITY,
+            axis_for_locking: INFINITY,
+        },
+    };
+
+    pub const RATE: f64 = 0.02;
+
+    /// Empirically-determined number of steps for gradient descent to stabilize
+    pub const STEPS: u32 = 5_000;
+
+    pub const REPULSION: bool = true;
+
+    pub const REPULSION_EXPONENT: i32 = 2;
+
+    pub const REPULSION_STRENGTH: f64 = 0.005;
+
+    pub const CURVE_9_40_CHAIN_SIZE: usize = 8;
 }

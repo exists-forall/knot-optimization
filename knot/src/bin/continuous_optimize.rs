@@ -9,7 +9,6 @@ extern crate glfw;
 extern crate knot;
 
 use std::f64::consts::PI;
-use std::f64::INFINITY;
 
 use kiss3d::window::Window;
 use kiss3d::light::Light;
@@ -20,8 +19,9 @@ use alga::general::SubsetOf;
 
 use knot::joint::{at_angles, RelativeJoint};
 use knot::defaults;
+use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, REPULSION, REPULSION_EXPONENT,
+                                              REPULSION_STRENGTH, CURVE_9_40_CHAIN_SIZE};
 use knot::visualize::joint_render::add_joints;
-use knot::cost::{CostParams, Thresholds};
 use knot::symmetry::symmetries;
 use knot::geometries::curve_9_40;
 use knot::continuous_optimize::RepulsionChain;
@@ -30,28 +30,12 @@ const TAU: f64 = 2.0 * PI;
 
 const DEBUG_ANGLES: bool = false;
 
-const REPULSION: bool = true;
-
-const RATE: f64 = 0.02;
-
 fn main() {
-    let cost_params = CostParams {
-        dist_weight: 1.0,
-        axis_weight: 3.0,
-        locking_weight: 0.17,
-        thresholds: Thresholds {
-            dist_for_axis: INFINITY,
-            axis_for_locking: INFINITY,
-        },
-    };
-
-    let chain_size = 8;
-
     let mut chain = RepulsionChain::new(
-        curve_9_40::chain(chain_size, 1.0, cost_params, RATE),
+        curve_9_40::chain(CURVE_9_40_CHAIN_SIZE, 1.0, COST_PARAMS, RATE),
         3,
-        2,
-        0.005,
+        REPULSION_EXPONENT,
+        REPULSION_STRENGTH,
     );
 
     let mut window = Window::new("Continuous Optimization");

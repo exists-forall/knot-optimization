@@ -8,17 +8,13 @@ use std::f64::INFINITY;
 
 use nalgebra::{UnitQuaternion, Vector3};
 
-use knot::cost::{CostParams, Thresholds};
 use knot::geometries::curve_9_40;
 use knot::continuous_optimize::RepulsionChain;
+use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, STEPS, REPULSION,
+                                              REPULSION_EXPONENT, REPULSION_STRENGTH,
+                                              CURVE_9_40_CHAIN_SIZE};
 
 const TAU: f64 = 2.0 * PI;
-
-const REPULSION: bool = true;
-
-const RATE: f64 = 0.02;
-
-const STEPS: u32 = 5_000;
 
 const EPOCHS: u32 = 10;
 
@@ -35,23 +31,11 @@ fn optimize(chain: &mut RepulsionChain, steps: u32) -> f64 {
 }
 
 fn main() {
-    let cost_params = CostParams {
-        dist_weight: 1.0,
-        axis_weight: 3.0,
-        locking_weight: 0.17,
-        thresholds: Thresholds {
-            dist_for_axis: INFINITY,
-            axis_for_locking: INFINITY,
-        },
-    };
-
-    let chain_size = 8;
-
     let mut best_chain = RepulsionChain::new(
-        curve_9_40::chain(chain_size, 1.0, cost_params, RATE),
+        curve_9_40::chain(CURVE_9_40_CHAIN_SIZE, 1.0, COST_PARAMS, RATE),
         3,
-        2,
-        0.005,
+        REPULSION_EXPONENT,
+        REPULSION_STRENGTH,
     );
     let mut best_cost = optimize(&mut best_chain, STEPS);
     println!("Original cost: {}", best_cost);
@@ -64,7 +48,7 @@ fn main() {
 
         println!("Best cost by epoch {}: {}", epoch, best_cost);
 
-        for i in 0..chain_size {
+        for i in 0..best_chain.joints.len() {
             for &offset in &[-2.0, -1.0, 1.0, 2.0] {
                 let angle = if i == 0 {
                     0.5 * offset * TAU / 16.0
