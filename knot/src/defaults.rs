@@ -76,4 +76,8 @@ pub mod continuous_optimization {
     pub const MAX_REPULSION_STRENGTH: f64 = 1.0; // TODO: Empirically determine best value
 
     pub const CURVE_9_40_CHAIN_SIZE: usize = 8;
+
+    pub const RETURN_TO_INITIAL: bool = true;
+
+    pub const RETURN_TO_INITIAL_WEIGHT: f64 = 0.0075;
 }

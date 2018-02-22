@@ -14,24 +14,40 @@ use geometries::from_curve::from_curve_natural_parameterize;
 
 const TAU: f64 = 2.0 * PI;
 
-pub fn chain(chain_size: usize, scale: f64, cost_params: CostParams, descent_rate: f64) -> Chain {
-    Chain {
-        spec: defaults::joint_spec(),
-        num_angles: defaults::NUM_ANGLES,
-        pre_phantom: PhantomJoint {
+pub fn chain(
+    chain_size: usize,
+    scale: f64,
+    cost_params: CostParams,
+    return_to_initial_weight: f64,
+    descent_rate: f64,
+) -> Chain {
+    Chain::new(
+        // spec
+        defaults::joint_spec(),
+        // num angles
+        defaults::NUM_ANGLES,
+        // pre-phatom
+        PhantomJoint {
             symmetry: UnitQuaternion::from_axis_angle(&Vector3::x_axis(), PI).to_superset(),
             index: 0,
             leg: Leg::Incoming,
         },
-        post_phantom: PhantomJoint {
+        // post-phantom
+        PhantomJoint {
             symmetry: adjacent_symmetry(3, 1).to_superset(),
             index: chain_size - 1,
             leg: Leg::Outgoing,
         },
-        cost_params: cost_params,
+        // cost params
+        cost_params,
+        // 'return to initial' weight
+        return_to_initial_weight,
+        // descent rate
         descent_rate,
-        steps: iso_adj::Steps::new_uniform(0.000001),
-        joints: from_curve_natural_parameterize(
+        // steps
+        iso_adj::Steps::new_uniform(0.000001),
+        // joints
+        from_curve_natural_parameterize(
             2.7, // arc length step
             0.01, // dt
             0.0, // start
@@ -43,5 +59,5 @@ pub fn chain(chain_size: usize, scale: f64, cost_params: CostParams, descent_rat
                 spherical(theta, phi, scale * rho)
             },
         ).collect(),
-    }
+    )
 }

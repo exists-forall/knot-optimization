@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use nalgebra::{Isometry3, Vector3};
+use nalgebra::{Isometry3, Vector3, Point3, Translation3};
 
 use joint::JointSpec;
 use cost::{CostParams, cost_opposing, cost_aligned};
@@ -27,9 +27,11 @@ pub struct Chain {
     pub pre_phantom: PhantomJoint,
     pub post_phantom: PhantomJoint,
     pub cost_params: CostParams,
+    pub return_to_initial_weight: f64,
     pub descent_rate: f64,
     pub steps: iso_adj::Steps,
     pub joints: Vec<Isometry3<f64>>,
+    initial_points: Vec<Point3<f64>>,
 }
 
 fn get_leg(spec: &JointSpec, joint: &Isometry3<f64>, leg: &Leg) -> Isometry3<f64> {
@@ -40,6 +42,37 @@ fn get_leg(spec: &JointSpec, joint: &Isometry3<f64>, leg: &Leg) -> Isometry3<f64
 }
 
 impl Chain {
+    pub fn new(
+        spec: JointSpec,
+        num_angles: u32,
+        pre_phantom: PhantomJoint,
+        post_phantom: PhantomJoint,
+        cost_params: CostParams,
+        return_to_initial_weight: f64,
+        descent_rate: f64,
+        steps: iso_adj::Steps,
+        joints: Vec<Isometry3<f64>>,
+    ) -> Self {
+        let initial_points = joints
+            .iter()
+            .map(|joint| Point3 { coords: joint.translation.vector })
+            .collect();
+
+        Chain {
+            spec,
+            num_angles,
+            pre_phantom,
+            post_phantom,
+            cost_params,
+            return_to_initial_weight,
+            descent_rate,
+            steps,
+            joints,
+            initial_points,
+        }
+    }
+
+
     fn get_phantom(&self, phantom: &PhantomJoint) -> Isometry3<f64> {
         phantom.symmetry * self.joints[phantom.index]
     }
@@ -105,6 +138,15 @@ impl Chain {
         }
 
         curr_total_cost
+    }
+
+    pub fn return_to_initial(&mut self) {
+        for (joint, initial) in self.joints.iter_mut().zip(self.initial_points.iter()) {
+            let diff = initial - Point3 { coords: joint.translation.vector };
+            *joint = Translation3::from_vector(
+                diff * self.return_to_initial_weight * self.descent_rate,
+            ) * *joint;
+        }
     }
 }
 

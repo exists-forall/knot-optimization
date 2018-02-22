@@ -21,7 +21,8 @@ use knot::joint::{at_angles, RelativeJoint};
 use knot::defaults;
 use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, REPULSION, REPULSION_EXPONENT,
                                               REPULSION_STRENGTH, MAX_REPULSION_STRENGTH,
-                                              CURVE_9_40_CHAIN_SIZE};
+                                              CURVE_9_40_CHAIN_SIZE, RETURN_TO_INITIAL_WEIGHT,
+                                              RETURN_TO_INITIAL};
 use knot::visualize::joint_render::add_joints;
 use knot::symmetry::symmetries;
 use knot::geometries::curve_9_40;
@@ -33,7 +34,13 @@ const DEBUG_ANGLES: bool = false;
 
 fn main() {
     let mut chain = RepulsionChain::new(
-        curve_9_40::chain(CURVE_9_40_CHAIN_SIZE, 0.7, COST_PARAMS, RATE),
+        curve_9_40::chain(
+            CURVE_9_40_CHAIN_SIZE,
+            0.7,
+            COST_PARAMS,
+            RETURN_TO_INITIAL_WEIGHT,
+            RATE,
+        ),
         3,
         1,
         REPULSION_EXPONENT,
@@ -59,6 +66,8 @@ fn main() {
     let mut step = 0;
 
     let mut selected = 0;
+
+    let mut return_to_initial = false;
 
     while window.render() {
         for event in window.events().iter() {
@@ -114,6 +123,14 @@ fn main() {
                         Key::Q => {
                             let cost = chain.optimize();
                             println!("{{{}, {}}},", step, cost);
+                        }
+                        Key::R => {
+                            return_to_initial = !return_to_initial;
+                            if return_to_initial {
+                                println!("'Return to initial' enabled");
+                            } else {
+                                println!("'Return to initial' disabled");
+                            }
                         }
                         _ => {}
                     }
@@ -174,6 +191,10 @@ fn main() {
 
             if REPULSION {
                 chain.repulse();
+            }
+
+            if return_to_initial {
+                chain.return_to_initial();
             }
         }
     }
