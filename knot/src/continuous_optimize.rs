@@ -190,7 +190,6 @@ impl RepulsionChain {
                     let neighbors = neighbors_in_same_branch || neighbors_at_start ||
                         neighbors_at_end;
 
-                    // let neighbors = sym_i == 0 && i == j;
                     if !neighbors {
                         let diff = self.chain.joints[i].translation.vector -
                             (sym * self.chain.joints[j]).translation.vector;

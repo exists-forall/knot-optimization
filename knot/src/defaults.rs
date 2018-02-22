@@ -69,7 +69,7 @@ pub mod continuous_optimization {
 
     pub const REPULSION: bool = true;
 
-    pub const REPULSION_EXPONENT: i32 = 8;
+    pub const REPULSION_EXPONENT: i32 = 2;
 
     pub const REPULSION_STRENGTH: f64 = 0.005;
 
