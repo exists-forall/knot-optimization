@@ -20,7 +20,8 @@ use alga::general::SubsetOf;
 use knot::joint::{at_angles, RelativeJoint};
 use knot::defaults;
 use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, REPULSION, REPULSION_EXPONENT,
-                                              REPULSION_STRENGTH, CURVE_9_40_CHAIN_SIZE};
+                                              REPULSION_STRENGTH, MAX_REPULSION_STRENGTH,
+                                              CURVE_9_40_CHAIN_SIZE};
 use knot::visualize::joint_render::add_joints;
 use knot::symmetry::symmetries;
 use knot::geometries::curve_9_40;
@@ -34,8 +35,10 @@ fn main() {
     let mut chain = RepulsionChain::new(
         curve_9_40::chain(CURVE_9_40_CHAIN_SIZE, 1.0, COST_PARAMS, RATE),
         3,
+        1,
         REPULSION_EXPONENT,
         REPULSION_STRENGTH,
+        MAX_REPULSION_STRENGTH,
     );
 
     let mut window = Window::new("Continuous Optimization");

@@ -11,7 +11,15 @@ fn quaternion_x_pi() -> UnitQuaternion<f64> {
 
 /// Enumerate dihedral-n symmetries in three dimensions.
 pub fn symmetries(count: u32) -> impl Iterator<Item = UnitQuaternion<f64>> {
-    let step = UnitQuaternion::from_axis_angle(&Vector3::z_axis(), 2.0 * PI / (count as f64));
+    symmetries_with_skip(count, 1)
+}
+
+/// Enumerate dihedral-n symmetries in three dimensions.
+pub fn symmetries_with_skip(count: u32, skip: u32) -> impl Iterator<Item = UnitQuaternion<f64>> {
+    let step = UnitQuaternion::from_axis_angle(
+        &Vector3::z_axis(),
+        2.0 * (skip as f64) * PI / (count as f64),
+    );
     let mut frame_up = UnitQuaternion::identity();
     let mut is_frame_down = false;
     (0..(2 * count)).map(move |_| if is_frame_down {

@@ -5,7 +5,7 @@ use nalgebra::{Isometry3, Vector3};
 use joint::JointSpec;
 use cost::{CostParams, cost_opposing, cost_aligned};
 use isometry_adjust as iso_adj;
-use symmetry::symmetries;
+use symmetry::symmetries_with_skip;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Leg {
@@ -113,10 +113,12 @@ pub struct RepulsionChain {
     pub chain: Chain,
     pub repulsion_exp: i32,
     pub repulsion_strength: f64,
+    pub max_repulsion_strength: f64,
 
     // Necessary because the chain only contains boundary condition information, not global
     // symmetries.
     pub symmetry: u32,
+    pub skip: u32,
 
     // cached workspace to avoid reallocation
     forces: Vec<Vector3<f64>>,
@@ -139,13 +141,34 @@ impl DerefMut for RepulsionChain {
     }
 }
 
+fn within(a: usize, b: usize, range: usize) -> bool {
+    ((a as isize) - (b as isize)).abs() <= (range as isize)
+}
+
+fn clamped_inverse_power(x: f64, n: i32, scale: f64, clamp: f64) -> f64 {
+    if x <= 0.0 {
+        clamp
+    } else {
+        (scale * x.powi(-n)).min(clamp)
+    }
+}
+
 impl RepulsionChain {
-    pub fn new(chain: Chain, symmetry: u32, repulsion_exp: i32, repulsion_strength: f64) -> Self {
+    pub fn new(
+        chain: Chain,
+        symmetry: u32,
+        skip: u32,
+        repulsion_exp: i32,
+        repulsion_strength: f64,
+        max_repulsion_strength: f64,
+    ) -> Self {
         RepulsionChain {
             chain,
             repulsion_exp,
             repulsion_strength,
+            max_repulsion_strength,
             symmetry,
+            skip,
             forces: Vec::new(),
         }
     }
@@ -157,15 +180,29 @@ impl RepulsionChain {
             Vector3::new(0.0, 0.0, 0.0),
         );
         for i in 0..self.chain.joints.len() {
-            for (sym_i, sym) in symmetries(self.symmetry).enumerate() {
+            for (sym_i, sym) in symmetries_with_skip(self.symmetry, self.skip).enumerate() {
                 for j in 0..self.chain.joints.len() {
-                    if !(sym_i == 0 && i == j) {
+                    let neighbors_in_same_branch = sym_i == 0 && within(i, j, 1);
+                    let neighbors_at_start = sym_i == 1 && i == 0 && j == 0; // DEBUG
+                    let neighbors_at_end = sym_i == 2 && i == self.chain.joints.len() - 1 &&
+                        j == self.chain.joints.len() - 1;
+
+                    let neighbors = neighbors_in_same_branch || neighbors_at_start ||
+                        neighbors_at_end;
+
+                    // let neighbors = sym_i == 0 && i == j;
+                    if !neighbors {
                         let diff = self.chain.joints[i].translation.vector -
                             (sym * self.chain.joints[j]).translation.vector;
-                        self.forces[i] += diff / diff.norm() /
-                            (diff.norm() - self.chain.spec.radius() * 2.0).powi(
+                        // surface distance
+                        let surf_dist = diff.norm() - self.chain.spec.radius() * 2.0;
+                        self.forces[i] += diff / diff.norm() *
+                            clamped_inverse_power(
+                                surf_dist,
                                 self.repulsion_exp,
-                            ) * self.repulsion_strength;
+                                self.repulsion_strength,
+                                self.max_repulsion_strength,
+                            );
                     }
                 }
             }

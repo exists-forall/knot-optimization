@@ -69,9 +69,11 @@ pub mod continuous_optimization {
 
     pub const REPULSION: bool = true;
 
-    pub const REPULSION_EXPONENT: i32 = 2;
+    pub const REPULSION_EXPONENT: i32 = 8;
 
     pub const REPULSION_STRENGTH: f64 = 0.005;
+
+    pub const MAX_REPULSION_STRENGTH: f64 = 1.0; // TODO: Empirically determine best value
 
     pub const CURVE_9_40_CHAIN_SIZE: usize = 8;
 }

@@ -12,7 +12,7 @@ use knot::geometries::curve_9_40;
 use knot::continuous_optimize::RepulsionChain;
 use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, STEPS, REPULSION,
                                               REPULSION_EXPONENT, REPULSION_STRENGTH,
-                                              CURVE_9_40_CHAIN_SIZE};
+                                              MAX_REPULSION_STRENGTH, CURVE_9_40_CHAIN_SIZE};
 
 const TAU: f64 = 2.0 * PI;
 
@@ -34,8 +34,10 @@ fn main() {
     let mut best_chain = RepulsionChain::new(
         curve_9_40::chain(CURVE_9_40_CHAIN_SIZE, 1.0, COST_PARAMS, RATE),
         3,
+        1,
         REPULSION_EXPONENT,
         REPULSION_STRENGTH,
+        MAX_REPULSION_STRENGTH,
     );
     let mut best_cost = optimize(&mut best_chain, STEPS);
     println!("Original cost: {}", best_cost);
