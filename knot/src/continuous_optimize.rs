@@ -1,8 +1,11 @@
-use nalgebra::Isometry3;
+use std::ops::{Deref, DerefMut};
+
+use nalgebra::{Isometry3, Vector3};
 
 use joint::JointSpec;
 use cost::{CostParams, cost_opposing, cost_aligned};
 use isometry_adjust as iso_adj;
+use symmetry::symmetries;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Leg {
@@ -102,5 +105,74 @@ impl Chain {
         }
 
         curr_total_cost
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RepulsionChain {
+    pub chain: Chain,
+    pub repulsion_exp: i32,
+    pub repulsion_strength: f64,
+
+    // Necessary because the chain only contains boundary condition information, not global
+    // symmetries.
+    pub symmetry: u32,
+
+    // cached workspace to avoid reallocation
+    forces: Vec<Vector3<f64>>,
+
+    // TODO: Spatial partition structure to avoid qudadratic-time force calculation (can probably
+    // reuse or extend CollisionGrid)
+}
+
+impl Deref for RepulsionChain {
+    type Target = Chain;
+
+    fn deref(&self) -> &Chain {
+        &self.chain
+    }
+}
+
+impl DerefMut for RepulsionChain {
+    fn deref_mut(&mut self) -> &mut Chain {
+        &mut self.chain
+    }
+}
+
+impl RepulsionChain {
+    pub fn new(chain: Chain, symmetry: u32, repulsion_exp: i32, repulsion_strength: f64) -> Self {
+        RepulsionChain {
+            chain,
+            repulsion_exp,
+            repulsion_strength,
+            symmetry,
+            forces: Vec::new(),
+        }
+    }
+
+    pub fn repulse(&mut self) {
+        assert_eq!(self.forces.len(), 0);
+        self.forces.resize(
+            self.chain.joints.len(),
+            Vector3::new(0.0, 0.0, 0.0),
+        );
+        for i in 0..self.chain.joints.len() {
+            for (sym_i, sym) in symmetries(self.symmetry).enumerate() {
+                for j in 0..self.chain.joints.len() {
+                    if !(sym_i == 0 && i == j) {
+                        let diff = self.chain.joints[i].translation.vector -
+                            (sym * self.chain.joints[j]).translation.vector;
+                        self.forces[i] += diff / diff.norm() /
+                            (diff.norm() - self.chain.spec.radius() * 2.0).powi(2) *
+                            self.repulsion_strength;
+                    }
+                }
+            }
+        }
+
+        for (force, joint) in self.forces.iter().zip(self.chain.joints.iter_mut()) {
+            joint.translation.vector += force * self.chain.descent_rate;
+        }
+        self.forces.clear();
     }
 }

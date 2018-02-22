@@ -24,6 +24,7 @@ use knot::visualize::joint_render::add_joints;
 use knot::cost::{CostParams, Thresholds};
 use knot::symmetry::symmetries;
 use knot::geometries::curve_9_40;
+use knot::continuous_optimize::RepulsionChain;
 
 const TAU: f64 = 2.0 * PI;
 
@@ -46,7 +47,12 @@ fn main() {
 
     let chain_size = 8;
 
-    let mut chain = curve_9_40::chain(chain_size, 1.0, cost_params, RATE);
+    let mut chain = RepulsionChain::new(
+        curve_9_40::chain(chain_size, 1.0, cost_params, RATE),
+        3,
+        2,
+        0.005,
+    );
 
     let mut window = Window::new("Continuous Optimization");
     window.set_light(Light::StickToCamera);
@@ -179,27 +185,8 @@ fn main() {
             chain.optimize();
             step += 1;
 
-            // experimental repulsive force
             if REPULSION {
-                let forces = (0..chain.joints.len())
-                    .map(|i| {
-                        let mut force = Vector3::new(0.0, 0.0, 0.0);
-                        for (sym_i, sym) in symmetries(3).enumerate() {
-                            for j in 0..chain.joints.len() {
-                                if !(sym_i == 0 && i == j) {
-                                    let diff = chain.joints[i].translation.vector -
-                                        (sym * chain.joints[j]).translation.vector;
-                                    force += diff / diff.norm().powi(5);
-                                }
-                            }
-                        }
-                        force
-                    })
-                    .collect::<Vec<_>>();
-
-                for (force, joint) in forces.iter().zip(chain.joints.iter_mut()) {
-                    joint.translation.vector += force * RATE * 0.1;
-                }
+                chain.repulse();
             }
         }
     }
