@@ -333,14 +333,6 @@ pub fn collisions_with_symmetry<I: Iterator<Item = Point3<f64>>>(
                 let collisions = grid.collisions(&sphere);
 
                 if collisions.len() > 0 {
-                    for collision in collisions {
-                        println!("Collision on: {} {} [syms {} {}]",
-                            sphere.index,
-                            collision.index,
-                            sphere.symmetry_index,
-                            collision.symmetry_index,
-                        );
-                    }
                     return CollisionOutcome::Collision;
                 }
 
