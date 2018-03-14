@@ -105,8 +105,6 @@ fn main() {
             for face in &faces_template {
                 faces.push(transform_face((symm * trans).to_superset(), *face));
             }
-
-            break;
         }
     }
 
