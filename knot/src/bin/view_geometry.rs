@@ -72,16 +72,40 @@ fn main() {
 
     let mut group = window.scene_mut().add_group();
 
-    let mut nodes = add_joints(
-        &mut group,
-        &geometry.joint_spec,
-        (geometry.symmetries.len()) * geometry.transforms.len(),
-    );
+    let total_nodes = match geometry.parity {
+        JointsParity::Even => geometry.symmetries.len() * geometry.transforms.len(),
+        JointsParity::Odd => {
+            geometry.symmetries.len() * geometry.transforms.len() - geometry.symmetries.len() / 2
+        }
+    };
+
+    let mut nodes = add_joints(&mut group, &geometry.joint_spec, total_nodes);
 
     {
         let mut node_i = 0;
-        for symm in geometry.symmetries.iter().cloned().map(trans_to_isometry) {
-            for trans in geometry.transforms.iter().cloned().map(trans_to_isometry) {
+        for (i, symm) in geometry
+            .symmetries
+            .iter()
+            .cloned()
+            .map(trans_to_isometry)
+            .enumerate()
+        {
+            for (j, trans) in geometry
+                .transforms
+                .iter()
+                .cloned()
+                .map(trans_to_isometry)
+                .enumerate()
+            {
+                match geometry.parity {
+                    JointsParity::Even => {}
+                    JointsParity::Odd => {
+                        if i % 2 == 0 && j == 0 {
+                            continue;
+                        }
+                    }
+                }
+
                 nodes[node_i].set_local_transformation((symm * trans).to_superset());
                 node_i += 1;
             }
