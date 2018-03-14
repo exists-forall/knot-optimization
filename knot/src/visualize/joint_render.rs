@@ -2,11 +2,13 @@ use std::f32::consts::PI;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use nalgebra::{Vector3, UnitQuaternion, Point3, Translation3};
+use nalgebra::{Vector3, UnitQuaternion, Point3, Translation3, Isometry3};
+use alga::general::SubsetOf;
 use super::kiss3d::scene::SceneNode;
 use super::kiss3d::resource::Mesh;
 
 use joint::JointSpec;
+use defaults::NUM_ANGLES;
 
 /// Count from `start` to `end` in `count` equally-spaced steps.
 fn float_steps_inclusive(start: f32, end: f32, count: u32) -> impl Iterator<Item = f32> {
@@ -83,6 +85,7 @@ fn sliced_cylinder_mesh(r: f32, h: f32, bottom_angle: f32, top_angle: f32, res: 
 
 fn geometry_to_faces(
     dest: &mut Vec<[(Point3<f32>, Vector3<f32>); 3]>,
+    trans: Isometry3<f32>,
     geom: (Vec<Point3<f32>>, Vec<Vector3<f32>>, Vec<Point3<u32>>),
 ) {
     let (coords, normals, faces) = geom;
@@ -92,21 +95,24 @@ fn geometry_to_faces(
         let i2 = face.z;
         dest.push(
             [
-                (coords[i0 as usize], normals[i0 as usize]),
-                (coords[i1 as usize], normals[i1 as usize]),
-                (coords[i2 as usize], normals[i2 as usize]),
+                (trans * coords[i0 as usize], trans * normals[i0 as usize]),
+                (trans * coords[i1 as usize], trans * normals[i1 as usize]),
+                (trans * coords[i2 as usize], trans * normals[i2 as usize]),
             ],
         );
     }
 }
 
-pub fn sliced_cylinder_faces(spec: &JointSpec) -> Vec<[(Point3<f32>, Vector3<f32>); 3]> {
+pub fn sliced_cylinder_faces(
+    num_angles: u32,
+    spec: &JointSpec,
+) -> Vec<[(Point3<f32>, Vector3<f32>); 3]> {
     let geom1 = sliced_cylinder_geometry(
         spec.radius() as f32,
         spec.dist_in() as f32,
         0.0,
         spec.bend_angle() as f32 / 2.0,
-        20,
+        num_angles + 1,
     );
 
     let geom2 = sliced_cylinder_geometry(
@@ -114,12 +120,20 @@ pub fn sliced_cylinder_faces(spec: &JointSpec) -> Vec<[(Point3<f32>, Vector3<f32
         spec.dist_out() as f32,
         -spec.bend_angle() as f32 / 2.0,
         0.0,
-        20,
+        num_angles + 1,
     );
 
     let mut result = Vec::new();
-    geometry_to_faces(&mut result, geom1);
-    geometry_to_faces(&mut result, geom2);
+    geometry_to_faces(
+        &mut result,
+        Translation3::new(0.0, -spec.dist_in() as f32, 0.0).to_superset(),
+        geom1,
+    );
+    geometry_to_faces(
+        &mut result,
+        UnitQuaternion::from_axis_angle(&Vector3::z_axis(), spec.bend_angle() as f32).to_superset(),
+        geom2,
+    );
     result
 }
 

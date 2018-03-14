@@ -77,7 +77,7 @@ fn main() {
         exit(1);
     });
 
-    let faces_template = sliced_cylinder_faces(&geometry.joint_spec);
+    let faces_template = sliced_cylinder_faces(geometry.num_angles, &geometry.joint_spec);
 
     let mut faces: Vec<Face> = Vec::new();
 
