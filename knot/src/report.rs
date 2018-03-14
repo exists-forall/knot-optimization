@@ -1,3 +1,6 @@
+use nalgebra::{Isometry3, Vector3, Translation3, Matrix3, Rotation3, UnitQuaternion};
+use alga::general::SubsetOf;
+
 use joint::JointSpec;
 use symmetry_adjust;
 use cost::{CostParams, Costs};
@@ -40,6 +43,41 @@ pub struct RotationMatrix {
 pub struct Transform {
     pub translation: [f64; 3],
     pub rotation: RotationMatrix,
+}
+
+fn vec3_to_array(v: Vector3<f64>) -> [f64; 3] {
+    [v.x, v.y, v.z]
+}
+
+fn array_to_vec3(arr: [f64; 3]) -> Vector3<f64> {
+    Vector3::new(arr[0], arr[1], arr[2])
+}
+
+impl Transform {
+    pub fn from_isometry(iso: Isometry3<f64>) -> Self {
+        Transform {
+            translation: vec3_to_array(iso.translation.vector),
+            rotation: RotationMatrix {
+                col_x: vec3_to_array(iso * Vector3::x_axis().to_superset()),
+                col_y: vec3_to_array(iso * Vector3::y_axis().to_superset()),
+                col_z: vec3_to_array(iso * Vector3::z_axis().to_superset()),
+            },
+        }
+    }
+
+    pub fn to_isometry(&self) -> Isometry3<f64> {
+        let [tx, ty, tz] = self.translation;
+        let translation = Translation3::new(tx, ty, tz);
+        let rotation_mat = Rotation3::from_matrix_unchecked(Matrix3::from_columns(
+            &[
+                array_to_vec3(self.rotation.col_x),
+                array_to_vec3(self.rotation.col_y),
+                array_to_vec3(self.rotation.col_z),
+            ],
+        ));
+        let quaternion = UnitQuaternion::from_rotation_matrix(&rotation_mat);
+        Isometry3::from_parts(translation, quaternion)
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

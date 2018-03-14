@@ -40,10 +40,13 @@ fn tesselate_strip<I: Iterator<Item = u32>>(mut vertices: I) -> impl Iterator<It
     })
 }
 
-/// Create a `kiss3d` `Mesh` for a sliced cylinder oriented along the y axis, with its base centered
-/// at the origin, of average height `h`, radius `r`, and its bottom and top faces rotated at angles
-/// of `bottom_angle` and `top_angle`, respectively, about the z axis.
-fn sliced_cylinder_mesh(r: f32, h: f32, bottom_angle: f32, top_angle: f32, res: u32) -> Mesh {
+fn sliced_cylinder_geometry(
+    r: f32,
+    h: f32,
+    bottom_angle: f32,
+    top_angle: f32,
+    res: u32,
+) -> (Vec<Point3<f32>>, Vec<Vector3<f32>>, Vec<Point3<u32>>) {
     let mut coords = Vec::with_capacity(2 * res as usize);
     let mut normals = Vec::with_capacity(2 * res as usize);
 
@@ -67,7 +70,57 @@ fn sliced_cylinder_mesh(r: f32, h: f32, bottom_angle: f32, top_angle: f32, res: 
 
     let faces = tesselate_strip(0..2 * res).collect();
 
+    (coords, normals, faces)
+}
+
+/// Create a `kiss3d` `Mesh` for a sliced cylinder oriented along the y axis, with its base centered
+/// at the origin, of average height `h`, radius `r`, and its bottom and top faces rotated at angles
+/// of `bottom_angle` and `top_angle`, respectively, about the z axis.
+fn sliced_cylinder_mesh(r: f32, h: f32, bottom_angle: f32, top_angle: f32, res: u32) -> Mesh {
+    let (coords, normals, faces) = sliced_cylinder_geometry(r, h, bottom_angle, top_angle, res);
     Mesh::new(coords, faces, Some(normals), None, false)
+}
+
+fn geometry_to_faces(
+    dest: &mut Vec<[(Point3<f32>, Vector3<f32>); 3]>,
+    geom: (Vec<Point3<f32>>, Vec<Vector3<f32>>, Vec<Point3<u32>>),
+) {
+    let (coords, normals, faces) = geom;
+    for face in faces {
+        let i0 = face.x;
+        let i1 = face.y;
+        let i2 = face.z;
+        dest.push(
+            [
+                (coords[i0 as usize], normals[i0 as usize]),
+                (coords[i1 as usize], normals[i1 as usize]),
+                (coords[i2 as usize], normals[i2 as usize]),
+            ],
+        );
+    }
+}
+
+pub fn sliced_cylinder_faces(spec: &JointSpec) -> Vec<[(Point3<f32>, Vector3<f32>); 3]> {
+    let geom1 = sliced_cylinder_geometry(
+        spec.radius() as f32,
+        spec.dist_in() as f32,
+        0.0,
+        spec.bend_angle() as f32 / 2.0,
+        20,
+    );
+
+    let geom2 = sliced_cylinder_geometry(
+        spec.radius() as f32,
+        spec.dist_out() as f32,
+        -spec.bend_angle() as f32 / 2.0,
+        0.0,
+        20,
+    );
+
+    let mut result = Vec::new();
+    geometry_to_faces(&mut result, geom1);
+    geometry_to_faces(&mut result, geom2);
+    result
 }
 
 /// Add `count` scenenodes to the given `root` `SceneNode` representing joints with geometry given

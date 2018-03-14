@@ -1,5 +1,6 @@
 #![feature(conservative_impl_trait)]
 #![feature(inclusive_range)]
+#![feature(slice_patterns)]
 
 extern crate nalgebra;
 extern crate alga;

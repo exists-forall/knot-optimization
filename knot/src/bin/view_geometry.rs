@@ -1,5 +1,3 @@
-#![feature(slice_patterns)]
-
 extern crate kiss3d;
 extern crate alga;
 extern crate nalgebra;
@@ -29,24 +27,6 @@ use knot::report::{KnotReports, JointsParity, RotationMatrix, Transform, KnotGeo
 
 fn from_hex_color(r: u8, g: u8, b: u8) -> (f32, f32, f32) {
     ((r as f32) / 255.0, (g as f32) / 255.0, (b as f32) / 255.0)
-}
-
-fn array_to_vec3(arr: [f64; 3]) -> Vector3<f64> {
-    Vector3::new(arr[0], arr[1], arr[2])
-}
-
-fn trans_to_isometry(trans: Transform) -> Isometry3<f64> {
-    let [tx, ty, tz] = trans.translation;
-    let translation = Translation3::new(tx, ty, tz);
-    let rotation_mat = Rotation3::from_matrix_unchecked(Matrix3::from_columns(
-        &[
-            array_to_vec3(trans.rotation.col_x),
-            array_to_vec3(trans.rotation.col_y),
-            array_to_vec3(trans.rotation.col_z),
-        ],
-    ));
-    let quaternion = UnitQuaternion::from_rotation_matrix(&rotation_mat);
-    Isometry3::from_parts(translation, quaternion)
 }
 
 fn main() {
@@ -86,15 +66,13 @@ fn main() {
         for (i, symm) in geometry
             .symmetries
             .iter()
-            .cloned()
-            .map(trans_to_isometry)
+            .map(Transform::to_isometry)
             .enumerate()
         {
             for (j, trans) in geometry
                 .transforms
                 .iter()
-                .cloned()
-                .map(trans_to_isometry)
+                .map(Transform::to_isometry)
                 .enumerate()
             {
                 match geometry.parity {

@@ -11,28 +11,13 @@ use std::fs::File;
 use std::process::exit;
 use std::env::args;
 
-use nalgebra::{Isometry3, Point3, Vector3, UnitQuaternion, Rotation3};
+use nalgebra::Isometry3;
 use alga::general::SubsetOf;
 
 use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::visualize::joint_render::add_joints;
 use knot::report::{KnotReports, JointsParity, RotationMatrix, Transform, KnotGeometry};
-
-fn vec3_to_array(v: Vector3<f64>) -> [f64; 3] {
-    [v.x, v.y, v.z]
-}
-
-fn isometry_to_serializable(iso: Isometry3<f64>) -> Transform {
-    Transform {
-        translation: vec3_to_array(iso.translation.vector),
-        rotation: RotationMatrix {
-            col_x: vec3_to_array(iso * Vector3::x_axis().to_superset()),
-            col_y: vec3_to_array(iso * Vector3::y_axis().to_superset()),
-            col_z: vec3_to_array(iso * Vector3::z_axis().to_superset()),
-        },
-    }
-}
 
 fn main() {
     let filename = args().nth(1).unwrap_or_else(|| {
@@ -96,11 +81,11 @@ fn main() {
     let transforms = isometries
         .iter()
         .cloned()
-        .map(|iso| isometry_to_serializable(adjust_trans * iso))
+        .map(|iso| Transform::from_isometry(adjust_trans * iso))
         .collect::<Vec<_>>();
 
     let symms = symmetries(reports.symmetry_count)
-        .map(|quat| isometry_to_serializable(quat.to_superset()))
+        .map(|quat| Transform::from_isometry(quat.to_superset()))
         .collect::<Vec<_>>();
 
     let geometry = KnotGeometry {
