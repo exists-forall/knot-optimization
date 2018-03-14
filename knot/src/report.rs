@@ -28,3 +28,26 @@ pub struct KnotReports {
     pub knots: Vec<KnotReport>,
     pub parity: JointsParity,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct RotationMatrix {
+    pub col_x: [f64; 3],
+    pub col_y: [f64; 3],
+    pub col_z: [f64; 3],
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Transform {
+    pub translation: [f64; 3],
+    pub rotation: RotationMatrix,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct KnotGeometry {
+    pub joint_spec: JointSpec,
+    pub num_angles: u32,
+    pub cost_params: CostParams,
+    pub parity: JointsParity,
+    pub symmetries: Vec<Transform>,
+    pub transforms: Vec<Transform>,
+}
