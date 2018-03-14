@@ -91,10 +91,12 @@ fn main() {
         },
     ));
 
+    let adjust_trans = knot.symmetry_adjust.transform();
+
     let transforms = isometries
         .iter()
         .cloned()
-        .map(isometry_to_serializable)
+        .map(|iso| isometry_to_serializable(adjust_trans * iso))
         .collect::<Vec<_>>();
 
     let symms = symmetries(reports.symmetry_count)
