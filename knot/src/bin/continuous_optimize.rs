@@ -5,10 +5,15 @@ extern crate kiss3d;
 extern crate alga;
 extern crate nalgebra;
 extern crate glfw;
+extern crate serde;
+extern crate serde_json;
 
 extern crate knot;
 
 use std::f64::consts::PI;
+use std::fs::File;
+use std::process::exit;
+use std::env::args;
 
 use kiss3d::window::Window;
 use kiss3d::light::Light;
@@ -24,29 +29,77 @@ use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, REPULSION, REPU
                                               CURVE_9_40_CHAIN_SIZE, RETURN_TO_INITIAL_WEIGHT,
                                               RETURN_TO_INITIAL};
 use knot::visualize::joint_render::add_joints;
-use knot::symmetry::symmetries;
+use knot::symmetry::{symmetries, adjacent_symmetry};
 use knot::geometries::curve_9_40;
-use knot::continuous_optimize::RepulsionChain;
+use knot::continuous_optimize::{Chain, Leg, PhantomJoint, RepulsionChain};
+use knot::report::{KnotGeometry, Transform};
+use knot::isometry_adjust;
 
 const TAU: f64 = 2.0 * PI;
 
 const DEBUG_ANGLES: bool = false;
 
 fn main() {
-    let mut chain = RepulsionChain::new(
-        curve_9_40::chain(
-            CURVE_9_40_CHAIN_SIZE,
-            0.7,
-            COST_PARAMS,
-            RETURN_TO_INITIAL_WEIGHT,
-            RATE,
-        ),
-        3,
-        1,
-        REPULSION_EXPONENT,
-        REPULSION_STRENGTH,
-        MAX_REPULSION_STRENGTH,
-    );
+    let mut chain = match args().nth(1) {
+        Some(filename) => {
+            let file = File::open(&filename).unwrap_or_else(|_| {
+                eprintln!("Could not open filel {}", filename);
+                exit(1);
+            });
+            let geometry: KnotGeometry = serde_json::from_reader(file).unwrap_or_else(|_| {
+                eprintln!("Could not parse input file");
+                exit(1);
+            });
+            RepulsionChain::new(
+                Chain::new(
+                    geometry.joint_spec,
+                    geometry.num_angles,
+                    PhantomJoint {
+                        symmetry: UnitQuaternion::from_axis_angle(&Vector3::x_axis(), PI)
+                            .to_superset(),
+                        index: 0,
+                        leg: Leg::Incoming,
+                    },
+                    // post-phantom
+                    PhantomJoint {
+                        symmetry: adjacent_symmetry(3, 1).to_superset(),
+                        index: geometry.transforms.len() - 1,
+                        leg: Leg::Outgoing,
+                    },
+                    geometry.cost_params,
+                    RETURN_TO_INITIAL_WEIGHT,
+                    RATE,
+                    isometry_adjust::Steps::new_uniform(0.000001),
+                    geometry
+                        .transforms
+                        .iter()
+                        .map(Transform::to_isometry)
+                        .collect(),
+                ),
+                3,
+                1,
+                REPULSION_EXPONENT,
+                REPULSION_STRENGTH,
+                MAX_REPULSION_STRENGTH,
+            )
+        }
+        None => {
+            RepulsionChain::new(
+                curve_9_40::chain(
+                    CURVE_9_40_CHAIN_SIZE,
+                    0.7,
+                    COST_PARAMS,
+                    RETURN_TO_INITIAL_WEIGHT,
+                    RATE,
+                ),
+                3,
+                1,
+                REPULSION_EXPONENT,
+                REPULSION_STRENGTH,
+                MAX_REPULSION_STRENGTH,
+            )
+        }
+    };
 
     let mut window = Window::new("Continuous Optimization");
     window.set_light(Light::StickToCamera);
