@@ -15,9 +15,8 @@ use nalgebra::Isometry3;
 use alga::general::SubsetOf;
 
 use knot::joint::{discrete_symmetric_angles, at_angles};
-use knot::symmetry::symmetries;
-use knot::visualize::joint_render::add_joints;
-use knot::report::{KnotReports, JointsParity, RotationMatrix, Transform, KnotGeometry};
+use knot::symmetry::symmetries_with_skip;
+use knot::report::{KnotReports, JointsParity, Transform, KnotGeometry};
 
 fn main() {
     let filename = args().nth(1).unwrap_or_else(|| {
@@ -84,7 +83,7 @@ fn main() {
         .map(|iso| Transform::from_isometry(adjust_trans * iso))
         .collect::<Vec<_>>();
 
-    let symms = symmetries(reports.symmetry_count)
+    let symms = symmetries_with_skip(reports.symmetry_count, reports.symmetry_skip)
         .map(|quat| Transform::from_isometry(quat.to_superset()))
         .collect::<Vec<_>>();
 

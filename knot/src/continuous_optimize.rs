@@ -159,8 +159,7 @@ pub struct RepulsionChain {
 
     // Necessary because the chain only contains boundary condition information, not global
     // symmetries.
-    pub symmetry: u32,
-    pub skip: u32,
+    pub symmetries: Vec<Isometry3<f64>>,
 
     // cached workspace to avoid reallocation
     forces: Vec<Vector3<f64>>,
@@ -198,8 +197,7 @@ fn clamped_inverse_power(x: f64, n: i32, scale: f64, clamp: f64) -> f64 {
 impl RepulsionChain {
     pub fn new(
         chain: Chain,
-        symmetry: u32,
-        skip: u32,
+        symmetries: Vec<Isometry3<f64>>,
         repulsion_exp: i32,
         repulsion_strength: f64,
         max_repulsion_strength: f64,
@@ -209,8 +207,7 @@ impl RepulsionChain {
             repulsion_exp,
             repulsion_strength,
             max_repulsion_strength,
-            symmetry,
-            skip,
+            symmetries,
             forces: Vec::new(),
         }
     }
@@ -222,7 +219,7 @@ impl RepulsionChain {
             Vector3::new(0.0, 0.0, 0.0),
         );
         for i in 0..self.chain.joints.len() {
-            for (sym_i, sym) in symmetries_with_skip(self.symmetry, self.skip).enumerate() {
+            for (sym_i, sym) in self.symmetries.iter().enumerate() {
                 for j in 0..self.chain.joints.len() {
                     let neighbors_in_same_branch = sym_i == 0 && within(i, j, 1);
                     let neighbors_at_start = sym_i == 1 && i == 0 && j == 0; // DEBUG

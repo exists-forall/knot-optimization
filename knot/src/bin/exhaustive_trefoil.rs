@@ -253,6 +253,7 @@ fn generate_reports(
         joint_spec: spec,
         num_angles: NUM_ANGLES,
         symmetry_count: symmetry,
+        symmetry_skip: skip,
         knots: reports,
         cost_params: COST_PARAMS,
         parity,

@@ -27,6 +27,7 @@ pub struct KnotReports {
     pub joint_spec: JointSpec,
     pub num_angles: u32,
     pub symmetry_count: u32,
+    pub symmetry_skip: u32,
     pub cost_params: CostParams,
     pub knots: Vec<KnotReport>,
     pub parity: JointsParity,

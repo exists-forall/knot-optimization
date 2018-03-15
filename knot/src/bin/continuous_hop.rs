@@ -7,6 +7,7 @@ use std::f64::consts::PI;
 use std::f64::INFINITY;
 
 use nalgebra::{UnitQuaternion, Vector3};
+use alga::general::SubsetOf;
 
 use knot::geometries::curve_9_40;
 use knot::continuous_optimize::RepulsionChain;
@@ -14,6 +15,7 @@ use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, STEPS, REPULSIO
                                               REPULSION_EXPONENT, REPULSION_STRENGTH,
                                               MAX_REPULSION_STRENGTH, CURVE_9_40_CHAIN_SIZE,
                                               RETURN_TO_INITIAL_WEIGHT, RETURN_TO_INITIAL};
+use knot::symmetry::symmetries;
 
 const TAU: f64 = 2.0 * PI;
 
@@ -44,8 +46,7 @@ fn main() {
             RETURN_TO_INITIAL_WEIGHT,
             RATE,
         ),
-        3,
-        1,
+        symmetries(3).map(|quat| quat.to_superset()).collect(),
         REPULSION_EXPONENT,
         REPULSION_STRENGTH,
         MAX_REPULSION_STRENGTH,

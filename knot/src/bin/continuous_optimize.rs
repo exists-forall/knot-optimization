@@ -55,20 +55,19 @@ fn main() {
                     geometry.joint_spec,
                     geometry.num_angles,
                     PhantomJoint {
-                        symmetry: UnitQuaternion::from_axis_angle(&Vector3::x_axis(), PI)
-                            .to_superset(),
+                        symmetry: geometry.symmetries[1].to_isometry(),
                         index: 0,
                         leg: Leg::Incoming,
                     },
                     // post-phantom
                     PhantomJoint {
-                        symmetry: adjacent_symmetry(3, 1).to_superset(),
+                        symmetry: geometry.symmetries[3].to_isometry(),
                         index: geometry.transforms.len() - 1,
                         leg: Leg::Outgoing,
                     },
                     geometry.cost_params,
                     RETURN_TO_INITIAL_WEIGHT,
-                    RATE,
+                    RATE / 10.0,
                     isometry_adjust::Steps::new_uniform(0.000001),
                     geometry
                         .transforms
@@ -76,8 +75,11 @@ fn main() {
                         .map(Transform::to_isometry)
                         .collect(),
                 ),
-                3,
-                1,
+                geometry
+                    .symmetries
+                    .iter()
+                    .map(Transform::to_isometry)
+                    .collect(),
                 REPULSION_EXPONENT,
                 REPULSION_STRENGTH,
                 MAX_REPULSION_STRENGTH,
@@ -92,8 +94,7 @@ fn main() {
                     RETURN_TO_INITIAL_WEIGHT,
                     RATE,
                 ),
-                3,
-                1,
+                symmetries(3).map(|quat| quat.to_superset()).collect(),
                 REPULSION_EXPONENT,
                 REPULSION_STRENGTH,
                 MAX_REPULSION_STRENGTH,
