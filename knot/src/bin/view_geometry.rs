@@ -22,7 +22,7 @@ use alga::general::SubsetOf;
 
 use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries;
-use knot::visualize::joint_render::add_joints;
+use knot::visualize::joint_render::{add_joints, Style};
 use knot::report::{KnotReports, JointsParity, RotationMatrix, Transform, KnotGeometry};
 
 fn from_hex_color(r: u8, g: u8, b: u8) -> (f32, f32, f32) {
@@ -59,7 +59,13 @@ fn main() {
         }
     };
 
-    let mut nodes = add_joints(&mut group, &geometry.joint_spec, total_nodes);
+    let mut nodes = add_joints(
+        &mut group,
+        &geometry.joint_spec,
+        geometry.num_angles,
+        total_nodes,
+        Style::Flat,
+    );
 
     {
         let mut node_i = 0;

@@ -24,7 +24,7 @@ use alga::general::SubsetOf;
 
 use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries;
-use knot::visualize::joint_render::add_joints;
+use knot::visualize::joint_render::{add_joints, Style};
 use knot::report::{KnotReports, JointsParity};
 
 struct ReportsView {
@@ -82,12 +82,14 @@ impl ReportsView {
         let mut nodes = add_joints(
             &mut group,
             &self.reports.joint_spec,
+            self.reports.num_angles,
             (self.reports.symmetry_count as usize) *
                 (2 * report.angles.len() +
                      match self.reports.parity {
                          JointsParity::Even => 0,
                          JointsParity::Odd => 1,
                      }),
+            Style::Flat,
         );
         let joint_transforms = at_angles(
             discrete_symmetric_angles(

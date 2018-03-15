@@ -28,7 +28,7 @@ use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, REPULSION, REPU
                                               REPULSION_STRENGTH, MAX_REPULSION_STRENGTH,
                                               CURVE_9_40_CHAIN_SIZE, RETURN_TO_INITIAL_WEIGHT,
                                               RETURN_TO_INITIAL};
-use knot::visualize::joint_render::add_joints;
+use knot::visualize::joint_render::{add_joints, Style};
 use knot::symmetry::{symmetries, adjacent_symmetry};
 use knot::geometries::curve_9_40;
 use knot::continuous_optimize::{Chain, Leg, PhantomJoint, RepulsionChain};
@@ -108,6 +108,7 @@ fn main() {
     let mut nodes = add_joints(
         window.scene_mut(),
         &chain.spec,
+        chain.num_angles,
         chain.joints.len() * 6
         // debug:
         + if DEBUG_ANGLES {
@@ -115,6 +116,7 @@ fn main() {
         } else {
             0
         },
+        Style::Flat,
     );
 
     let mut step = 0;

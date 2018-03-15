@@ -42,6 +42,22 @@ fn tesselate_strip<I: Iterator<Item = u32>>(mut vertices: I) -> impl Iterator<It
     })
 }
 
+fn shared_to_duplicated(
+    vertices: &[Point3<f32>],
+    faces: &[Point3<u32>],
+) -> (Vec<Point3<f32>>, Vec<Point3<u32>>) {
+    let mut new_vertices = Vec::new();
+    let mut new_faces = Vec::new();
+    for face in faces {
+        let start_index = new_vertices.len() as u32;
+        new_vertices.push(vertices[face.x as usize]);
+        new_vertices.push(vertices[face.y as usize]);
+        new_vertices.push(vertices[face.z as usize]);
+        new_faces.push(Point3::new(start_index, start_index + 1, start_index + 2));
+    }
+    (new_vertices, new_faces)
+}
+
 fn sliced_cylinder_geometry(
     r: f32,
     h: f32,
@@ -75,12 +91,32 @@ fn sliced_cylinder_geometry(
     (coords, normals, faces)
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Style {
+    Smooth,
+    Flat,
+}
+
 /// Create a `kiss3d` `Mesh` for a sliced cylinder oriented along the y axis, with its base centered
 /// at the origin, of average height `h`, radius `r`, and its bottom and top faces rotated at angles
 /// of `bottom_angle` and `top_angle`, respectively, about the z axis.
-fn sliced_cylinder_mesh(r: f32, h: f32, bottom_angle: f32, top_angle: f32, res: u32) -> Mesh {
+fn sliced_cylinder_mesh(
+    r: f32,
+    h: f32,
+    bottom_angle: f32,
+    top_angle: f32,
+    res: u32,
+    style: Style,
+) -> Mesh {
     let (coords, normals, faces) = sliced_cylinder_geometry(r, h, bottom_angle, top_angle, res);
-    Mesh::new(coords, faces, Some(normals), None, false)
+
+    match style {
+        Style::Smooth => Mesh::new(coords, faces, Some(normals), None, false),
+        Style::Flat => {
+            let (flat_coords, flat_faces) = shared_to_duplicated(&coords, &faces);
+            Mesh::new(flat_coords, flat_faces, None, None, false)
+        }
+    }
 }
 
 fn geometry_to_faces(
@@ -139,14 +175,21 @@ pub fn sliced_cylinder_faces(
 
 /// Add `count` scenenodes to the given `root` `SceneNode` representing joints with geometry given
 /// by `joint_spec`. Initially, the joint `SceneNodes`s are all centered at the origin.
-pub fn add_joints(root: &mut SceneNode, joint_spec: &JointSpec, count: usize) -> Vec<SceneNode> {
+pub fn add_joints(
+    root: &mut SceneNode,
+    joint_spec: &JointSpec,
+    num_angles: u32,
+    count: usize,
+    style: Style,
+) -> Vec<SceneNode> {
 
     let cyl0_mesh = Rc::new(RefCell::new(sliced_cylinder_mesh(
         joint_spec.radius() as f32,
         joint_spec.dist_in() as f32,
         0.0,
         joint_spec.bend_angle() as f32 / 2.0,
-        20,
+        num_angles + 1,
+        style,
     )));
 
     let cyl1_mesh = Rc::new(RefCell::new(sliced_cylinder_mesh(
@@ -154,7 +197,8 @@ pub fn add_joints(root: &mut SceneNode, joint_spec: &JointSpec, count: usize) ->
         joint_spec.dist_out() as f32,
         -joint_spec.bend_angle() as f32 / 2.0,
         0.0,
-        20,
+        num_angles + 1,
+        style,
     )));
 
     let mut color = false;

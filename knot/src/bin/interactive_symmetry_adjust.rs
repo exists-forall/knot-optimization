@@ -23,7 +23,7 @@ use alga::general::SubsetOf;
 use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::symmetry_adjust;
-use knot::visualize::joint_render::add_joints;
+use knot::visualize::joint_render::{add_joints, Style};
 use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, INITIAL_SYMMETRY_ADJUST,
                      SYMMETRY_COUNT, joint_spec};
 use knot::report::JointsParity;
@@ -69,7 +69,9 @@ fn main() {
     let mut nodes = add_joints(
         window.scene_mut(),
         &spec,
+        NUM_ANGLES,
         rel_joint_angles.len() * (SYMMETRY_COUNT as usize) * 2,
+        Style::Flat,
     );
 
     let cost_joint_0_idx = rel_joint_angles.len() - 1;
