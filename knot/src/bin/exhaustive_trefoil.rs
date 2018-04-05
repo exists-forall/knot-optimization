@@ -1,5 +1,3 @@
-#![feature(conservative_impl_trait)]
-
 extern crate alga;
 extern crate nalgebra;
 extern crate serde;

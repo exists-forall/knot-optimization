@@ -1,5 +1,3 @@
-#![feature(conservative_impl_trait)]
-
 extern crate kiss3d;
 extern crate alga;
 extern crate nalgebra;

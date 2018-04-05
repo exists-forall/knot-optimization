@@ -1,4 +1,3 @@
-#![feature(conservative_impl_trait)]
 #![feature(inclusive_range_fields)]
 #![feature(slice_patterns)]
 

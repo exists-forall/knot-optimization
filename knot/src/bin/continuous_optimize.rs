@@ -1,4 +1,3 @@
-#![feature(conservative_impl_trait)]
 #![feature(type_ascription)]
 
 extern crate kiss3d;
