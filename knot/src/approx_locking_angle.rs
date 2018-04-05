@@ -7,6 +7,21 @@ fn align_and_flip(trans: &Isometry3<f64>) -> Isometry3<f64> {
     trans * UnitQuaternion::new_unchecked(Quaternion::new(0.0, 0.0, 0.0, 1.0))
 }
 
+fn modf(x: f64, m: f64) -> f64 {
+    if x < 0.0 { (x % m) + m } else { x % m }
+}
+
+fn y_rotation_angle(rot: UnitQuaternion<f64>) -> f64 {
+    let scaled_axis = rot.scaled_axis();
+    if scaled_axis.x.abs() > 1e-6 || scaled_axis.z.abs() > 1e-6 {
+        eprintln!(
+            "WARNING (y_rotation_angle): The given rotation is not about the y axis: {:#?}",
+            scaled_axis
+        );
+    }
+    modf(scaled_axis.y, 2.0 * PI)
+}
+
 pub fn locking_angle_aligned(
     num_angles: u32,
     trans_0: &Isometry3<f64>,
@@ -20,7 +35,7 @@ pub fn locking_angle_aligned(
 
     let aligned_rel_rotation = trans_0.rotation.inverse() * align * trans_1.rotation;
 
-    let result = aligned_rel_rotation.angle() / (2.0 * PI) * (num_angles as f64);
+    let result = y_rotation_angle(aligned_rel_rotation) / (2.0 * PI) * (num_angles as f64);
 
     if result.is_nan() {
         // sometimes `align` has NaN entries when the alignment is very close.
