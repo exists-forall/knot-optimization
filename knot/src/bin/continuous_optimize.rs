@@ -43,7 +43,7 @@ fn main() {
     let mut chain = match args().nth(1) {
         Some(filename) => {
             let file = File::open(&filename).unwrap_or_else(|_| {
-                eprintln!("Could not open filel {}", filename);
+                eprintln!("Could not open file {}", filename);
                 exit(1);
             });
             let geometry: KnotGeometry = serde_json::from_reader(file).unwrap_or_else(|_| {
