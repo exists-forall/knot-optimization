@@ -103,6 +103,95 @@ impl Chain {
         )
     }
 
+    pub fn apply_diffs(&mut self, ratio: f64, diffs: &[iso_adj::IsometryDifferential]) {
+        let joint_radius = (self.spec.dist_in() + self.spec.dist_out()) * 0.5;
+        for (i, &diff) in diffs.iter().enumerate() {
+            iso_adj::apply_step(
+                joint_radius,
+                &mut self.joints[i],
+                &diff.scale(-self.descent_rate * ratio),
+            );
+        }
+    }
+
+    pub fn total_cost(&self) -> f64 {
+        let mut result = 0.0;
+        let mut pre_joint = self.get_phantom(&self.pre_phantom);
+        let mut pre_leg = self.pre_phantom.leg;
+        for i in 0..self.joints.len() {
+            let joint = self.joints[i];
+            let (post_joint, post_leg) = if i + 1 < self.joints.len() {
+                (self.joints[i + 1], Leg::Incoming)
+            } else {
+                (self.get_phantom(&self.post_phantom), self.post_phantom.leg)
+            };
+
+            let pre_cost = self.cost_between(&pre_joint, &pre_leg, &joint, &Leg::Incoming);
+            let post_cost = self.cost_between(&joint, &Leg::Outgoing, &post_joint, &post_leg);
+            result += pre_cost + post_cost;
+            pre_joint = joint;
+            pre_leg = Leg::Outgoing;
+        }
+        result
+    }
+
+    pub fn adaptive_optimize(&mut self, ratios: &[f64], tolerance: f64) -> f64 {
+        let joint_radius = (self.spec.dist_in() + self.spec.dist_out()) * 0.5;
+
+        let mut curr_total_cost = 0.0;
+
+        let mut diff_mag_squ = 0.0;
+        let diffs = {
+            let mut pre_joint = self.get_phantom(&self.pre_phantom);
+            let mut pre_leg = self.pre_phantom.leg;
+            (0..self.joints.len())
+                .map(|i| {
+                    let joint = self.joints[i];
+                    let (post_joint, post_leg) = if i + 1 < self.joints.len() {
+                        (self.joints[i + 1], Leg::Incoming)
+                    } else {
+                        (self.get_phantom(&self.post_phantom), self.post_phantom.leg)
+                    };
+
+                    let (curr_joint_cost, diff) =
+                        iso_adj::differentiate(&self.steps, joint, |new_joint| {
+                            let pre_cost =
+                                self.cost_between(&pre_joint, &pre_leg, &new_joint, &Leg::Incoming);
+                            let post_cost = self.cost_between(
+                                &new_joint,
+                                &Leg::Outgoing,
+                                &post_joint,
+                                &post_leg,
+                            );
+                            pre_cost + post_cost
+                        });
+                    curr_total_cost += curr_joint_cost;
+                    diff_mag_squ += diff.magnitude_squ(joint_radius);
+                    pre_leg = Leg::Outgoing;
+                    diff
+                })
+                .collect::<Vec<_>>()
+        };
+
+        // Ratios should be in DESCENDING order!
+        let old_joints = self.joints.clone();
+        for &ratio in ratios {
+            self.joints.clone_from_slice(&old_joints);
+            self.apply_diffs(ratio, &diffs);
+            let new_cost = self.total_cost();
+            let expected_delta_cost = -diff_mag_squ * self.descent_rate * ratio;
+            let actual_delta_cost = new_cost - curr_total_cost;
+            if actual_delta_cost / expected_delta_cost >= tolerance {
+                self.descent_rate *= ratio;
+                return curr_total_cost;
+            }
+        }
+
+        // Last ratio still violated tolerance, but it's the best we have, so default to it
+        self.descent_rate *= ratios.last().unwrap();
+        curr_total_cost
+    }
+
     pub fn optimize(&mut self) -> f64 {
         let joint_radius = (self.spec.dist_in() + self.spec.dist_out()) * 0.5;
 
