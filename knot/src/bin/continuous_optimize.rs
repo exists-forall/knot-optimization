@@ -187,6 +187,9 @@ fn main() {
                                 println!("'Return to initial' disabled");
                             }
                         }
+                        Key::D => {
+                            println!("Descent rate: {}", chain.descent_rate);
+                        }
                         _ => {}
                     }
                 }
@@ -241,7 +244,7 @@ fn main() {
             }
         }
         for _ in 0..1000 {
-            chain.optimize();
+            chain.adaptive_optimize(&[2.0, 1.0, 0.5], 0.5);
             step += 1;
 
             if REPULSION {

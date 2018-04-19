@@ -167,6 +167,7 @@ impl Chain {
                         });
                     curr_total_cost += curr_joint_cost;
                     diff_mag_squ += diff.magnitude_squ(joint_radius);
+                    pre_joint = joint;
                     pre_leg = Leg::Outgoing;
                     diff
                 })
