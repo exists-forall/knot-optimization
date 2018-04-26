@@ -6,6 +6,7 @@ use symmetry_adjust::{self, Problem};
 use cost::{CostParams, Costs};
 use approx_locking_angle::locking_angle_opposing;
 use symmetry::adjacent_symmetry;
+use defaults;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KnotReport {
@@ -34,6 +35,17 @@ pub enum JointsParity {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KnotReports {
+    pub joint_spec: Option<JointSpec>,
+    pub num_angles: Option<u32>,
+    pub symmetry_count: u32,
+    pub symmetry_skip: u32,
+    pub cost_params: Option<CostParams>,
+    pub knots: Vec<KnotReport>,
+    pub parity: JointsParity,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CompleteKnotReports {
     pub joint_spec: JointSpec,
     pub num_angles: u32,
     pub symmetry_count: u32,
@@ -43,7 +55,19 @@ pub struct KnotReports {
     pub parity: JointsParity,
 }
 
-pub fn complete_report(reports: &KnotReports, index: usize) -> CompleteKnotReport {
+pub fn complete_reports(reports: KnotReports) -> CompleteKnotReports {
+    CompleteKnotReports {
+        joint_spec: reports.joint_spec.unwrap_or(defaults::joint_spec()),
+        num_angles: reports.num_angles.unwrap_or(defaults::NUM_ANGLES),
+        symmetry_count: reports.symmetry_count,
+        symmetry_skip: reports.symmetry_skip,
+        cost_params: reports.cost_params.unwrap_or(defaults::COST_PARAMS),
+        knots: reports.knots,
+        parity: reports.parity,
+    }
+}
+
+pub fn complete_report(reports: &CompleteKnotReports, index: usize) -> CompleteKnotReport {
     let report = reports.knots[index].clone();
 
     let (vars, costs, final_angle) = if let (Some(vars), Some(costs), Some(final_angle)) =

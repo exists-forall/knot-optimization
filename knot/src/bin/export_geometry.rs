@@ -14,7 +14,7 @@ use alga::general::SubsetOf;
 
 use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries_with_skip;
-use knot::report::{KnotReports, JointsParity, Transform, KnotGeometry, complete_report};
+use knot::report::{KnotReports, CompleteKnotReports, JointsParity, Transform, KnotGeometry, complete_report, complete_reports};
 
 fn main() {
     let filename = args().nth(1).unwrap_or_else(|| {
@@ -36,10 +36,10 @@ fn main() {
         eprintln!("Could not open file {}", filename);
         exit(1);
     });
-    let reports: KnotReports = serde_json::from_reader(file).unwrap_or_else(|_| {
+    let reports: CompleteKnotReports = complete_reports(serde_json::from_reader(file).unwrap_or_else(|_| {
         eprintln!("Could not parse input file");
         exit(1);
-    });
+    }));
 
     if !(index < reports.knots.len()) {
         eprintln!(

@@ -23,12 +23,12 @@ use alga::general::SubsetOf;
 use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::visualize::joint_render::{add_joints, Style};
-use knot::report::{KnotReports, JointsParity, complete_report};
+use knot::report::{KnotReports, CompleteKnotReports, JointsParity, complete_report, complete_reports};
 
 struct ReportsView {
     window: Window,
     camera: ArcBall,
-    reports: KnotReports,
+    reports: CompleteKnotReports,
     viewed: Option<SceneNode>,
 }
 
@@ -41,7 +41,7 @@ impl ReportsView {
         ReportsView {
             window,
             camera: ArcBall::new(Point3::new(0.0, 0.0, 25.0), Point3::origin()),
-            reports,
+            reports: complete_reports(reports),
             viewed: None,
         }
     }

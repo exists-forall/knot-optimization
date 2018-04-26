@@ -248,12 +248,12 @@ fn generate_reports(
         .collect();
 
     KnotReports {
-        joint_spec: spec,
-        num_angles: NUM_ANGLES,
+        joint_spec: Some(spec),
+        num_angles: Some(NUM_ANGLES),
         symmetry_count: symmetry,
         symmetry_skip: skip,
         knots: reports,
-        cost_params: COST_PARAMS,
+        cost_params: Some(COST_PARAMS),
         parity,
     }
 }
