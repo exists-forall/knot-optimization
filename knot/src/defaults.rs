@@ -45,7 +45,7 @@ pub const NUM_ANGLES: u32 = 16;
 pub const SYMMETRY_COUNT: u32 = 3;
 
 pub fn joint_spec() -> JointSpec {
-    JointSpec::new(1.0, 1.0, PI / 6.0, 0.5)
+    JointSpec::new(1.0, 1.0, PI / 6.0, 1.25)
 }
 
 pub mod continuous_optimization {
