@@ -32,7 +32,9 @@ pub struct CollisionGrid<T> {
 
 impl<T> CollisionGrid<T> {
     pub fn new(_: f64) -> Self {
-        CollisionGrid { colliders: Vec::new() }
+        CollisionGrid {
+            colliders: Vec::new(),
+        }
     }
 
     pub fn add(&mut self, collider: &T)

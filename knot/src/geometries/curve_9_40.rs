@@ -5,7 +5,7 @@ use alga::general::SubsetOf;
 
 use defaults;
 use isometry_adjust as iso_adj;
-use continuous_optimize::{Leg, PhantomJoint, Chain};
+use continuous_optimize::{Chain, Leg, PhantomJoint};
 use cost::CostParams;
 use symmetry::adjacent_symmetry;
 
@@ -48,10 +48,10 @@ pub fn chain(
         iso_adj::Steps::new_uniform(0.000001),
         // joints
         from_curve_natural_parameterize(
-            2.7, // arc length step
+            2.7,  // arc length step
             0.01, // dt
-            0.0, // start
-            1.0, // end
+            0.0,  // start
+            1.0,  // end
             |t| {
                 let theta = 2.0 * TAU / 3.0 * t;
                 let phi = 1.0 * (TAU / 2.0 * t).sin();

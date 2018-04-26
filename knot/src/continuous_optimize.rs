@@ -1,9 +1,9 @@
 use std::ops::{Deref, DerefMut};
 
-use nalgebra::{Isometry3, Vector3, Point3, Translation3};
+use nalgebra::{Isometry3, Point3, Translation3, Vector3};
 
 use joint::JointSpec;
-use cost::{CostParams, cost_opposing, cost_aligned};
+use cost::{cost_aligned, cost_opposing, CostParams};
 use isometry_adjust as iso_adj;
 use symmetry::symmetries_with_skip;
 
@@ -55,7 +55,9 @@ impl Chain {
     ) -> Self {
         let initial_points = joints
             .iter()
-            .map(|joint| Point3 { coords: joint.translation.vector })
+            .map(|joint| Point3 {
+                coords: joint.translation.vector,
+            })
             .collect();
 
         Chain {
@@ -71,7 +73,6 @@ impl Chain {
             initial_points,
         }
     }
-
 
     fn get_phantom(&self, phantom: &PhantomJoint) -> Isometry3<f64> {
         phantom.symmetry * self.joints[phantom.index]
@@ -232,7 +233,9 @@ impl Chain {
 
     pub fn return_to_initial(&mut self) {
         for (joint, initial) in self.joints.iter_mut().zip(self.initial_points.iter()) {
-            let diff = initial - Point3 { coords: joint.translation.vector };
+            let diff = initial - Point3 {
+                coords: joint.translation.vector,
+            };
             *joint = Translation3::from_vector(
                 diff * self.return_to_initial_weight * self.descent_rate,
             ) * *joint;
@@ -253,7 +256,6 @@ pub struct RepulsionChain {
 
     // cached workspace to avoid reallocation
     forces: Vec<Vector3<f64>>,
-
     // TODO: Spatial partition structure to avoid qudadratic-time force calculation (can probably
     // reuse or extend CollisionGrid)
 }
@@ -304,28 +306,26 @@ impl RepulsionChain {
 
     pub fn repulse(&mut self) {
         assert_eq!(self.forces.len(), 0);
-        self.forces.resize(
-            self.chain.joints.len(),
-            Vector3::new(0.0, 0.0, 0.0),
-        );
+        self.forces
+            .resize(self.chain.joints.len(), Vector3::new(0.0, 0.0, 0.0));
         for i in 0..self.chain.joints.len() {
             for (sym_i, sym) in self.symmetries.iter().enumerate() {
                 for j in 0..self.chain.joints.len() {
                     let neighbors_in_same_branch = sym_i == 0 && within(i, j, 1);
                     let neighbors_at_start = sym_i == 1 && i == 0 && j == 0; // DEBUG
-                    let neighbors_at_end = sym_i == 2 && i == self.chain.joints.len() - 1 &&
-                        j == self.chain.joints.len() - 1;
+                    let neighbors_at_end = sym_i == 2 && i == self.chain.joints.len() - 1
+                        && j == self.chain.joints.len() - 1;
 
-                    let neighbors = neighbors_in_same_branch || neighbors_at_start ||
-                        neighbors_at_end;
+                    let neighbors =
+                        neighbors_in_same_branch || neighbors_at_start || neighbors_at_end;
 
                     if !neighbors {
-                        let diff = self.chain.joints[i].translation.vector -
-                            (sym * self.chain.joints[j]).translation.vector;
+                        let diff = self.chain.joints[i].translation.vector
+                            - (sym * self.chain.joints[j]).translation.vector;
                         // surface distance
                         let surf_dist = diff.norm() - self.chain.spec.radius() * 2.0;
-                        self.forces[i] += diff / diff.norm() *
-                            clamped_inverse_power(
+                        self.forces[i] += diff / diff.norm()
+                            * clamped_inverse_power(
                                 surf_dist,
                                 self.repulsion_exp,
                                 self.repulsion_strength,

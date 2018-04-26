@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use nalgebra::{Vector3, UnitQuaternion, Quaternion};
+use nalgebra::{Quaternion, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
 
 /// Return a rotation by pi radians about the x-axis. Faster than, but equivalent to,
@@ -22,17 +22,19 @@ pub fn symmetries_with_skip(count: u32, skip: u32) -> impl Iterator<Item = UnitQ
     );
     let mut frame_up = UnitQuaternion::identity();
     let mut is_frame_down = false;
-    (0..(2 * count)).map(move |_| if is_frame_down {
-        // In principle, maintaining a boolean variable for "flips" rather than repeatedly composing
-        // rotations by pi should be faster and more numerically stable, although it is admittedly
-        // less readable.
-        let curr_frame = frame_up * quaternion_x_pi();
-        frame_up = step * frame_up;
-        is_frame_down = false;
-        curr_frame
-    } else {
-        is_frame_down = true;
-        frame_up
+    (0..(2 * count)).map(move |_| {
+        if is_frame_down {
+            // In principle, maintaining a boolean variable for "flips" rather than repeatedly composing
+            // rotations by pi should be faster and more numerically stable, although it is admittedly
+            // less readable.
+            let curr_frame = frame_up * quaternion_x_pi();
+            frame_up = step * frame_up;
+            is_frame_down = false;
+            curr_frame
+        } else {
+            is_frame_down = true;
+            frame_up
+        }
     })
 }
 
@@ -44,7 +46,8 @@ pub fn adjacent_symmetry(count: u32, skip: u32) -> UnitQuaternion<f64> {
     (UnitQuaternion::from_axis_angle(
         &Vector3::z_axis(),
         2.0 * (skip as f64) * PI / (count as f64),
-    ) * quaternion_x_pi()).to_superset()
+    ) * quaternion_x_pi())
+        .to_superset()
 }
 
 #[cfg(test)]

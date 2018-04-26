@@ -1,9 +1,9 @@
 use std::f64::consts::PI;
 
-use nalgebra::{Translation3, Isometry3, Vector3, UnitQuaternion};
+use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
 
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use report::JointsParity;
 
@@ -31,12 +31,12 @@ pub struct JointSpec {
 impl JointSpec {
     pub fn new(dist_in: f64, dist_out: f64, bend_angle: f64, radius: f64) -> JointSpec {
         let in_to_origin = Translation3::new(0.0, dist_in, 0.0).to_superset();
-        let out_to_origin = Translation3::new(0.0, -dist_out, 0.0) *
-            UnitQuaternion::from_axis_angle(&Vector3::z_axis(), -bend_angle);
+        let out_to_origin = Translation3::new(0.0, -dist_out, 0.0)
+            * UnitQuaternion::from_axis_angle(&Vector3::z_axis(), -bend_angle);
 
         let origin_to_in = Translation3::new(0.0, -dist_in, 0.0).to_superset();
-        let origin_to_out = UnitQuaternion::from_axis_angle(&Vector3::z_axis(), bend_angle) *
-            Translation3::new(0.0, dist_out, 0.0);
+        let origin_to_out = UnitQuaternion::from_axis_angle(&Vector3::z_axis(), bend_angle)
+            * Translation3::new(0.0, dist_out, 0.0);
 
         let origin_to_symmetric =
             UnitQuaternion::from_axis_angle(&Vector3::z_axis(), -bend_angle / 2.0).to_superset();
@@ -151,11 +151,9 @@ pub fn discrete_angles<I: Iterator<Item = i32>>(
 ) -> impl Iterator<Item = RelativeJoint> {
     let angle_step = (2.0 * PI) / (num_angles as f64);
 
-    angles.map(move |angle| {
-        RelativeJoint {
-            spec: spec,
-            angle: angle_step * (angle as f64),
-        }
+    angles.map(move |angle| RelativeJoint {
+        spec: spec,
+        angle: angle_step * (angle as f64),
     })
 }
 
@@ -176,16 +174,18 @@ pub fn discrete_symmetric_angles<I: Iterator<Item = i32>>(
         JointsParity::Odd => false,
     };
 
-    angles.map(move |angle| if self_attached {
-        self_attached = false;
-        RelativeJoint {
-            spec: spec,
-            angle: angle_step * (angle as f64) * 0.5,
-        }
-    } else {
-        RelativeJoint {
-            spec: spec,
-            angle: angle_step * (angle as f64),
+    angles.map(move |angle| {
+        if self_attached {
+            self_attached = false;
+            RelativeJoint {
+                spec: spec,
+                angle: angle_step * (angle as f64) * 0.5,
+            }
+        } else {
+            RelativeJoint {
+                spec: spec,
+                angle: angle_step * (angle as f64),
+            }
         }
     })
 }
@@ -310,8 +310,8 @@ mod test {
             },
         ];
 
-        let transforms = at_angles(relative_joints.iter().cloned(), Isometry3::identity())
-            .collect::<Vec<_>>();
+        let transforms =
+            at_angles(relative_joints.iter().cloned(), Isometry3::identity()).collect::<Vec<_>>();
 
         assert_eq!(transforms.len(), 3);
 

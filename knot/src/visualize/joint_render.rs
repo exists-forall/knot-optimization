@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use nalgebra::{Vector3, UnitQuaternion, Point3, Translation3, Isometry3};
+use nalgebra::{Isometry3, Point3, Translation3, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
 use super::kiss3d::scene::SceneNode;
 use super::kiss3d::resource::Mesh;
@@ -24,12 +24,8 @@ fn tesselate_strip<I: Iterator<Item = u32>>(mut vertices: I) -> impl Iterator<It
     let mut v1_opt = vertices.next();
     let mut reverse_winding = false;
     vertices.map(move |v2| {
-        let v0 = v0_opt.expect(
-            "Vertex iterator should not yield 'Some' after yielding 'None'",
-        );
-        let v1 = v1_opt.expect(
-            "Vertex iterator should not yield 'Some' after yielding 'None'",
-        );
+        let v0 = v0_opt.expect("Vertex iterator should not yield 'Some' after yielding 'None'");
+        let v1 = v1_opt.expect("Vertex iterator should not yield 'Some' after yielding 'None'");
         let tri = if reverse_winding {
             Point3::new(v1, v0, v2)
         } else {
@@ -129,13 +125,11 @@ fn geometry_to_faces(
         let i0 = face.x;
         let i1 = face.y;
         let i2 = face.z;
-        dest.push(
-            [
-                (trans * coords[i0 as usize], trans * normals[i0 as usize]),
-                (trans * coords[i1 as usize], trans * normals[i1 as usize]),
-                (trans * coords[i2 as usize], trans * normals[i2 as usize]),
-            ],
-        );
+        dest.push([
+            (trans * coords[i0 as usize], trans * normals[i0 as usize]),
+            (trans * coords[i1 as usize], trans * normals[i1 as usize]),
+            (trans * coords[i2 as usize], trans * normals[i2 as usize]),
+        ]);
     }
 }
 
@@ -182,7 +176,6 @@ pub fn add_joints(
     count: usize,
     style: Style,
 ) -> Vec<SceneNode> {
-
     let cyl0_mesh = Rc::new(RefCell::new(sliced_cylinder_mesh(
         joint_spec.radius() as f32,
         joint_spec.dist_in() as f32,

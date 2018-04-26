@@ -4,7 +4,7 @@ use rand::distributions::{IndependentSample, Normal};
 use cost::CostParams;
 use symmetry_adjust::Problem;
 
-use nalgebra::{UnitQuaternion, Quaternion, Unit, Isometry3, Translation3, Vector3};
+use nalgebra::{Isometry3, Quaternion, Translation3, Unit, UnitQuaternion, Vector3};
 
 fn rand_quaternion<R: Rng>(rng: &mut R) -> UnitQuaternion<f64> {
     let dist = Normal::new(0.0, 1.0);

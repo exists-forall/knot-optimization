@@ -4,7 +4,7 @@ use std::iter::once;
 
 use joint::JointSpec;
 use cost::{CostParams, Thresholds};
-use symmetry_adjust::{Vars, OptimizationParams};
+use symmetry_adjust::{OptimizationParams, Vars};
 
 pub const COST_PARAMS: CostParams = CostParams {
     dist_weight: 5.0,

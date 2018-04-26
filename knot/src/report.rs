@@ -1,4 +1,4 @@
-use nalgebra::{Isometry3, Vector3, Translation3, Matrix3, Rotation3, UnitQuaternion};
+use nalgebra::{Isometry3, Matrix3, Rotation3, Translation3, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
 
 use joint::JointSpec;
@@ -69,13 +69,11 @@ impl Transform {
     pub fn to_isometry(&self) -> Isometry3<f64> {
         let [tx, ty, tz] = self.translation;
         let translation = Translation3::new(tx, ty, tz);
-        let rotation_mat = Rotation3::from_matrix_unchecked(Matrix3::from_columns(
-            &[
-                array_to_vec3(self.rotation.col_x),
-                array_to_vec3(self.rotation.col_y),
-                array_to_vec3(self.rotation.col_z),
-            ],
-        ));
+        let rotation_mat = Rotation3::from_matrix_unchecked(Matrix3::from_columns(&[
+            array_to_vec3(self.rotation.col_x),
+            array_to_vec3(self.rotation.col_y),
+            array_to_vec3(self.rotation.col_z),
+        ]));
         let quaternion = UnitQuaternion::from_rotation_matrix(&rotation_mat);
         Isometry3::from_parts(translation, quaternion)
     }

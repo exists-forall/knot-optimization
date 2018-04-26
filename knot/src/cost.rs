@@ -2,7 +2,7 @@ use std::f64::INFINITY;
 
 use approx_locking_angle::locking_angle_aligned;
 
-use nalgebra::{Isometry3, Vector3, UnitQuaternion, Quaternion};
+use nalgebra::{Isometry3, Quaternion, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
 
 /// Configurable parameters for determinng when certain terms in the cost function should be
@@ -93,8 +93,8 @@ pub fn costs_aligned(
             // From the observation that x^2 * (1 - x)^2 has local minima at x = 0 and x = 1 and a
             // local maximum at x = 1/2, at which it attains a maximum value of 1/16, and is
             // continuous and differentiable everywhere even when it is extended periodically mod 1.
-            16.0 * locking_interval_frac * locking_interval_frac * (1.0 - locking_interval_frac) *
-                (1.0 - locking_interval_frac)
+            16.0 * locking_interval_frac * locking_interval_frac * (1.0 - locking_interval_frac)
+                * (1.0 - locking_interval_frac)
         } else {
             1.0
         };
@@ -123,8 +123,8 @@ pub fn cost_aligned(
 ) -> f64 {
     let costs = costs_aligned(&cost_params.thresholds, num_angles, trans_0, trans_1);
 
-    costs.dist * cost_params.dist_weight + costs.axis * cost_params.axis_weight +
-        costs.locking * cost_params.locking_weight
+    costs.dist * cost_params.dist_weight + costs.axis * cost_params.axis_weight
+        + costs.locking * cost_params.locking_weight
 }
 
 fn align(trans: &Isometry3<f64>) -> Isometry3<f64> {
@@ -251,8 +251,8 @@ mod test {
         let trans_0 = Isometry3::identity();
         let trans_1 = Isometry3::from_parts(
             Translation3::new(2.0, 0.0, 0.0),
-            UnitQuaternion::from_axis_angle(&Vector3::x_axis(), PI / 6.0) *
-                UnitQuaternion::from_axis_angle(&Vector3::y_axis(), PI / 4.0),
+            UnitQuaternion::from_axis_angle(&Vector3::x_axis(), PI / 6.0)
+                * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), PI / 4.0),
         );
 
         let cost = costs_aligned(&NO_THRESHOLD, 4, &trans_0, &trans_1);

@@ -1,8 +1,8 @@
 #![feature(inclusive_range_fields)]
 #![feature(slice_patterns)]
 
-extern crate nalgebra;
 extern crate alga;
+extern crate nalgebra;
 extern crate rand;
 extern crate serde;
 #[macro_use]

@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use nalgebra::{Isometry3, Vector3, UnitQuaternion, Quaternion};
+use nalgebra::{Isometry3, Quaternion, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
 
 fn align_and_flip(trans: &Isometry3<f64>) -> Isometry3<f64> {
@@ -8,7 +8,11 @@ fn align_and_flip(trans: &Isometry3<f64>) -> Isometry3<f64> {
 }
 
 fn modf(x: f64, m: f64) -> f64 {
-    if x < 0.0 { (x % m) + m } else { x % m }
+    if x < 0.0 {
+        (x % m) + m
+    } else {
+        x % m
+    }
 }
 
 fn y_rotation_angle(rot: UnitQuaternion<f64>) -> f64 {
@@ -30,8 +34,8 @@ pub fn locking_angle_aligned(
     let axis_0 = trans_0 * Vector3::y_axis().to_superset();
     let axis_1 = trans_1 * Vector3::y_axis().to_superset();
 
-    let align = UnitQuaternion::rotation_between(&axis_1, &axis_0)
-        .unwrap_or(UnitQuaternion::identity());
+    let align =
+        UnitQuaternion::rotation_between(&axis_1, &axis_0).unwrap_or(UnitQuaternion::identity());
 
     let aligned_rel_rotation = trans_0.rotation.inverse() * align * trans_1.rotation;
 
@@ -61,8 +65,8 @@ mod test {
     #[test]
     fn perfectly_aligned_y() {
         let trans_0 = Isometry3::identity();
-        let trans_1 = UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 2.0 * PI / 3.0)
-            .to_superset();
+        let trans_1 =
+            UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 2.0 * PI / 3.0).to_superset();
 
         assert_relative_eq!(locking_angle_aligned(1, &trans_0, &trans_1), 1.0 / 3.0);
         assert_relative_eq!(locking_angle_aligned(2, &trans_0, &trans_1), 2.0 / 3.0);
@@ -72,16 +76,17 @@ mod test {
     fn perfect_aligned_x() {
         let trans_0 = UnitQuaternion::from_axis_angle(&Vector3::z_axis(), PI / 2.0).to_superset();
         let trans_1 =
-            (UnitQuaternion::from_axis_angle(&Vector3::z_axis(), PI / 2.0) *
-                 UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 2.0 * PI / 3.0)).to_superset();
+            (UnitQuaternion::from_axis_angle(&Vector3::z_axis(), PI / 2.0)
+                * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 2.0 * PI / 3.0))
+                .to_superset();
 
         assert_relative_eq!(locking_angle_aligned(1, &trans_0, &trans_1), 1.0 / 3.0);
     }
 
     #[test]
     fn trans_0_rotated() {
-        let trans_0 = UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -2.0 * PI / 3.0)
-            .to_superset();
+        let trans_0 =
+            UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -2.0 * PI / 3.0).to_superset();
         let trans_1 = Isometry3::identity();
 
         assert_relative_eq!(locking_angle_aligned(1, &trans_0, &trans_1), 1.0 / 3.0);
@@ -91,8 +96,9 @@ mod test {
     fn misaligned_y() {
         let trans_0 = Isometry3::identity();
         let trans_1 =
-            (UnitQuaternion::from_axis_angle(&Vector3::z_axis(), PI / 8.0) *
-                 UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 2.0 * PI / 3.0)).to_superset();
+            (UnitQuaternion::from_axis_angle(&Vector3::z_axis(), PI / 8.0)
+                * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 2.0 * PI / 3.0))
+                .to_superset();
 
         assert_relative_eq!(locking_angle_aligned(1, &trans_0, &trans_1), 1.0 / 3.0);
     }

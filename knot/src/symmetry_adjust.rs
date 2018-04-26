@@ -1,9 +1,9 @@
-use std::f64::consts::{PI, FRAC_PI_2};
+use std::f64::consts::{FRAC_PI_2, PI};
 
-use nalgebra::{Isometry3, Translation3, Vector2, Vector3, UnitQuaternion};
+use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector2, Vector3};
 
 use symmetry;
-use cost::{CostParams, cost_opposing, costs_opposing, Costs};
+use cost::{cost_opposing, costs_opposing, CostParams, Costs};
 
 /// Analog parameters for how a chain of joints can be positioned in space with symmetry.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -184,8 +184,9 @@ impl Problem {
             &|vars| self.cost(vars),
         );
         self.apply_step(vars, &differential.scale(-opt_params.descent_rate));
-        differential.d_radius * differential.d_radius +
-            differential.d_radial_angle * differential.d_radial_angle * self.radial_angle_normalizer
+        differential.d_radius * differential.d_radius
+            + differential.d_radial_angle * differential.d_radial_angle
+                * self.radial_angle_normalizer
     }
 
     pub fn solve_direct(&self) -> (Vars, f64) {

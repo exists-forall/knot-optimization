@@ -1,4 +1,4 @@
-use nalgebra::{Isometry3, UnitQuaternion, Translation3, Vector3};
+use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector3};
 
 #[derive(Clone, Copy, Debug)]
 pub struct IsometryDifferential {
@@ -58,18 +58,18 @@ pub fn differentiate<F: Fn(&Isometry3<f64>) -> f64>(
     let z_rate = (f(&z_stepped) - f_0) / steps.z;
 
     let mut i_stepped = trans_0;
-    i_stepped.rotation = UnitQuaternion::from_axis_angle(&Vector3::x_axis(), steps.i) *
-        i_stepped.rotation;
+    i_stepped.rotation =
+        UnitQuaternion::from_axis_angle(&Vector3::x_axis(), steps.i) * i_stepped.rotation;
     let i_rate = (f(&i_stepped) - f_0) / steps.i;
 
     let mut j_stepped = trans_0;
-    j_stepped.rotation = UnitQuaternion::from_axis_angle(&Vector3::y_axis(), steps.j) *
-        j_stepped.rotation;
+    j_stepped.rotation =
+        UnitQuaternion::from_axis_angle(&Vector3::y_axis(), steps.j) * j_stepped.rotation;
     let j_rate = (f(&j_stepped) - f_0) / steps.j;
 
     let mut k_stepped = trans_0;
-    k_stepped.rotation = UnitQuaternion::from_axis_angle(&Vector3::z_axis(), steps.k) *
-        k_stepped.rotation;
+    k_stepped.rotation =
+        UnitQuaternion::from_axis_angle(&Vector3::z_axis(), steps.k) * k_stepped.rotation;
     let k_rate = (f(&k_stepped) - f_0) / steps.k;
 
     let diff = IsometryDifferential {
@@ -99,16 +99,15 @@ impl IsometryDifferential {
     }
 
     pub fn magnitude_squ(&self, radius: f64) -> f64 {
-        self.d_x * self.d_x + self.d_y * self.d_y + self.d_z * self.d_z +
-            (self.d_i * self.d_i + self.d_j * self.d_j + self.d_k * self.d_k) / (radius * radius)
+        self.d_x * self.d_x + self.d_y * self.d_y + self.d_z * self.d_z
+            + (self.d_i * self.d_i + self.d_j * self.d_j + self.d_k * self.d_k) / (radius * radius)
     }
 }
 
 pub fn apply_step(radius: f64, trans: &mut Isometry3<f64>, diff: &IsometryDifferential) {
     let delta_translation = Translation3::new(diff.d_x, diff.d_y, diff.d_z);
-    let delta_rotation = UnitQuaternion::new(
-        Vector3::new(diff.d_i, diff.d_j, diff.d_k) / (radius * radius),
-    );
+    let delta_rotation =
+        UnitQuaternion::new(Vector3::new(diff.d_i, diff.d_j, diff.d_k) / (radius * radius));
 
     trans.translation = delta_translation * trans.translation;
     trans.rotation = delta_rotation * trans.rotation;

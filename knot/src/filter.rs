@@ -2,12 +2,12 @@ use std::f64::consts::PI;
 use std::iter::once;
 use std::fmt::Debug;
 
-use nalgebra::{Vector2, Vector3, Isometry3, Point3};
+use nalgebra::{Isometry3, Point3, Vector2, Vector3};
 use joint::JointSpec;
 use symmetry::symmetries;
 
 // Swap to collision_grid to enable experimental spatial partitioning optimization
-use collision_grid_trivial::{CollisionGrid, Bounds, BoundingBox, BoundedCollider, CheckCollision};
+use collision_grid_trivial::{BoundedCollider, BoundingBox, Bounds, CheckCollision, CollisionGrid};
 
 #[derive(Clone, Copy, Debug)]
 enum PointsState {
@@ -32,23 +32,23 @@ impl<I: Iterator<Item = Isometry3<f64>>> Iterator for Points<I> {
                 self.state = PointsState::MainPoints(None);
                 Some(Point3::origin())
             }
-            PointsState::MainPoints(prev_trans) => {
-                match self.joints.next() {
-                    Some(curr_trans) => {
-                        self.state = PointsState::MainPoints(Some(curr_trans));
-                        Some(Point3 { coords: curr_trans.translation.vector })
-                    }
-                    None => {
-                        self.state = PointsState::Done;
-                        Some(Point3 {
-                            coords: (prev_trans.expect("Should have at least one joint") *
-                                         self.spec.origin_to_out())
-                                .translation
-                                .vector,
-                        })
-                    }
+            PointsState::MainPoints(prev_trans) => match self.joints.next() {
+                Some(curr_trans) => {
+                    self.state = PointsState::MainPoints(Some(curr_trans));
+                    Some(Point3 {
+                        coords: curr_trans.translation.vector,
+                    })
                 }
-            }
+                None => {
+                    self.state = PointsState::Done;
+                    Some(Point3 {
+                        coords: (prev_trans.expect("Should have at least one joint")
+                            * self.spec.origin_to_out())
+                            .translation
+                            .vector,
+                    })
+                }
+            },
             PointsState::Done => None,
         }
     }
@@ -206,8 +206,8 @@ fn connected_branches(
     symmetry_index1: u32,
     symmetry_index2: u32,
 ) -> bool {
-    same_horseshoe_partner(symmetry_count, symmetry_index1) == symmetry_index2 ||
-        opposing_horseshoe_partner(symmetry_count, skip, symmetry_index1) == symmetry_index2
+    same_horseshoe_partner(symmetry_count, symmetry_index1) == symmetry_index2
+        || opposing_horseshoe_partner(symmetry_count, skip, symmetry_index1) == symmetry_index2
 }
 
 fn is_extreme(x: u32, count: u32) -> bool {
@@ -240,8 +240,7 @@ impl CheckCollision<CollisionSphere> for CollisionSphere {
             skip,
             self.symmetry_index,
             other.symmetry_index,
-        )
-        {
+        ) {
             // Points on adjacent symmetry branches are collision-protected iff they are the same
             // initial or final point (because they are then meant to exactly overlap in space), or
             // one is an initial or final point and the other is its immediate neighbor (because one
@@ -263,7 +262,11 @@ impl CheckCollision<CollisionSphere> for CollisionSphere {
             dist_squ < total_rad * total_rad
         };
 
-        if colliding { Some(*other) } else { None }
+        if colliding {
+            Some(*other)
+        } else {
+            None
+        }
     }
 }
 
@@ -281,8 +284,7 @@ fn exact_size<I: Iterator>(it: &I) -> usize {
     } else {
         panic!(
             "Iterator must be exact-size; got size bounds {} {:?}",
-            lower,
-            upper
+            lower, upper
         )
     }
 }
@@ -316,9 +318,9 @@ pub fn collisions_with_symmetry<I: Iterator<Item = Point3<f64>>>(
     for (index, center) in centers.enumerate() {
         for (symm_index, symm) in symms.iter().enumerate() {
             let symm_center = symm * center;
-            if !USE_WEDGE ||
-                (symm_center.coords.dot(&wedge_plane1_normal) <= radius &&
-                     symm_center.coords.dot(&wedge_plane2_normal) <= radius)
+            if !USE_WEDGE
+                || (symm_center.coords.dot(&wedge_plane1_normal) <= radius
+                    && symm_center.coords.dot(&wedge_plane2_normal) <= radius)
             {
                 let sphere = CollisionSphere {
                     center: symm_center,
@@ -399,7 +401,6 @@ mod test {
             let collide_right_to_left = sphere2.check_collision(&sphere1).is_some();
             assert_same(collide_left_to_right, collide_right_to_left)
         }
-
 
         assert_eq!(same_horseshoe_partner(3, 0), 1);
         assert_eq!(same_horseshoe_partner(3, 1), 0);
