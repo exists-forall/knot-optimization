@@ -23,7 +23,7 @@ use alga::general::SubsetOf;
 use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries;
 use knot::visualize::joint_render::{add_joints, Style};
-use knot::report::{KnotReports, JointsParity};
+use knot::report::{KnotReports, JointsParity, complete_report};
 
 struct ReportsView {
     window: Window,
@@ -65,7 +65,7 @@ impl ReportsView {
             return;
         }
 
-        let report = &self.reports.knots[i];
+        let report = complete_report(&self.reports, i);
 
         println!("Viewing report {}", i);
         println!("{:#?}", report);

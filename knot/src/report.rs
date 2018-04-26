@@ -1,12 +1,22 @@
 use nalgebra::{Isometry3, Matrix3, Rotation3, Translation3, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
 
-use joint::JointSpec;
-use symmetry_adjust;
+use joint::{at_angles, discrete_symmetric_angles, JointSpec};
+use symmetry_adjust::{self, Problem};
 use cost::{CostParams, Costs};
+use approx_locking_angle::locking_angle_opposing;
+use symmetry::adjacent_symmetry;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KnotReport {
+    pub angles: Vec<i32>,
+    pub final_angle: Option<f64>,
+    pub symmetry_adjust: Option<symmetry_adjust::Vars>,
+    pub costs: Option<Costs>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CompleteKnotReport {
     pub angles: Vec<i32>,
     pub final_angle: f64,
     pub symmetry_adjust: symmetry_adjust::Vars,
@@ -31,6 +41,63 @@ pub struct KnotReports {
     pub cost_params: CostParams,
     pub knots: Vec<KnotReport>,
     pub parity: JointsParity,
+}
+
+pub fn complete_report(reports: &KnotReports, index: usize) -> CompleteKnotReport {
+    let report = reports.knots[index].clone();
+
+    let (vars, costs, final_angle) = if let (Some(vars), Some(costs), Some(final_angle)) =
+        (report.symmetry_adjust, report.costs, report.final_angle)
+    {
+        (vars, costs, final_angle)
+    } else {
+        let mut last_joint_trans = Isometry3::identity();
+        for trans in at_angles(
+            discrete_symmetric_angles(
+                reports.joint_spec,
+                reports.num_angles,
+                reports.parity,
+                report.angles.iter().cloned().map(|angle| angle as i32),
+            ),
+            match reports.parity {
+                JointsParity::Even => Isometry3::identity(),
+                JointsParity::Odd => {
+                    reports.joint_spec.origin_to_symmetric() * reports.joint_spec.origin_to_out()
+                }
+            },
+        ) {
+            last_joint_trans = trans;
+        }
+
+        let last_joint_out = last_joint_trans * reports.joint_spec.origin_to_out();
+        let problem = Problem::new(
+            reports.cost_params,
+            last_joint_out,
+            reports.num_angles,
+            reports.symmetry_count,
+            reports.symmetry_skip,
+        );
+
+        let (vars, _) = problem.solve_direct();
+        let costs = problem.costs(&vars);
+
+        let symmetry_adjust_trans = vars.transform();
+        let final_angle = locking_angle_opposing(
+            reports.num_angles,
+            &(symmetry_adjust_trans * last_joint_out),
+            &(adjacent_symmetry(reports.symmetry_count, reports.symmetry_skip)
+                * symmetry_adjust_trans * last_joint_out),
+        );
+
+        (vars, costs, final_angle)
+    };
+
+    CompleteKnotReport {
+        angles: report.angles,
+        final_angle: final_angle,
+        symmetry_adjust: vars,
+        costs: costs,
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

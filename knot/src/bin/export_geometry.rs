@@ -14,7 +14,7 @@ use alga::general::SubsetOf;
 
 use knot::joint::{discrete_symmetric_angles, at_angles};
 use knot::symmetry::symmetries_with_skip;
-use knot::report::{KnotReports, JointsParity, Transform, KnotGeometry};
+use knot::report::{KnotReports, JointsParity, Transform, KnotGeometry, complete_report};
 
 fn main() {
     let filename = args().nth(1).unwrap_or_else(|| {
@@ -49,7 +49,7 @@ fn main() {
         exit(1);
     }
 
-    let knot = &reports.knots[index];
+    let knot = complete_report(&reports, index);
 
     let mut isometries = Vec::new();
 

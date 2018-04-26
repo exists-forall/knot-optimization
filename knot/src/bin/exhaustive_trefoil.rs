@@ -240,9 +240,9 @@ fn generate_reports(
         .map(|knot| {
             KnotReport {
                 angles: knot.angles.iter().map(|&angle| angle as i32).collect(),
-                final_angle: knot.final_angle,
-                symmetry_adjust: knot.symmetry_adjust,
-                costs: knot.costs,
+                final_angle: Some(knot.final_angle),
+                symmetry_adjust: Some(knot.symmetry_adjust),
+                costs: Some(knot.costs),
             }
         })
         .collect();
