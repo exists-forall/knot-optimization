@@ -279,11 +279,15 @@ fn within(a: usize, b: usize, range: usize) -> bool {
 }
 
 fn clamped_inverse_power(x: f64, n: i32, scale: f64, clamp: f64) -> f64 {
-    if x <= 0.0 {
+    let result = if x <= 0.0 {
         clamp
     } else {
         (scale * x.powi(-n)).min(clamp)
+    };
+    if result.is_nan() {
+        eprintln!("Clamped inverse power returned NaN!");
     }
+    result
 }
 
 impl RepulsionChain {

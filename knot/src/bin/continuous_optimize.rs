@@ -159,6 +159,17 @@ fn main() {
                             chain.cost_params.locking_weight /= 1.5;
                             println!("Locking weight: {}", chain.cost_params.locking_weight);
                         }
+                        Key::Backslash => {
+                            chain.cost_params.locking_weight = 0.0;
+                            println!("Locking weight disabled");
+                        }
+                        Key::Enter => {
+                            chain.cost_params.locking_weight = COST_PARAMS.locking_weight;
+                            println!(
+                                "Locking weight enabled: {}",
+                                chain.cost_params.locking_weight
+                            );
+                        }
                         Key::Up => {
                             selected = (selected + 1) % chain.joints.len();
                             println!("Selected {}", selected);
@@ -190,6 +201,46 @@ fn main() {
                         Key::D => {
                             println!("Descent rate: {}", chain.descent_rate);
                         }
+
+                        Key::N => {
+                            println!("Repulsion disabled");
+                            chain.repulsion_strength = 0.0;
+                        }
+                        Key::M => {
+                            println!("Repulsion enabled");
+                            chain.repulsion_strength = REPULSION_STRENGTH;
+                        }
+                        Key::K => {
+                            chain.repulsion_strength *= 1.5;
+                            println!("Repulsion: {}", chain.repulsion_strength);
+                        }
+                        Key::J => {
+                            chain.repulsion_strength /= 1.5;
+                            println!("Repulsion: {}", chain.repulsion_strength);
+                        }
+
+                        Key::V => {
+                            println!("Max repulsion disabled");
+                            chain.max_repulsion_strength = 0.0001;
+                        }
+                        Key::B => {
+                            chain.max_repulsion_strength = MAX_REPULSION_STRENGTH;
+                            println!("Max repulsion enabled: {}", chain.max_repulsion_strength);
+                        }
+                        Key::H => {
+                            chain.max_repulsion_strength *= 1.5;
+                            println!("Max repulsion: {}", chain.max_repulsion_strength);
+                        }
+                        Key::G => {
+                            chain.max_repulsion_strength /= 1.5;
+                            println!("Max repulsion: {}", chain.max_repulsion_strength);
+                        }
+
+                        Key::F => {
+                            chain.descent_rate = RATE / 10.0;
+                            println!("Descent rate reset: {}", chain.descent_rate);
+                        }
+
                         _ => {}
                     }
                 }
