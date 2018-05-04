@@ -12,13 +12,11 @@ use std::process::exit;
 use std::env::args;
 use std::io;
 
-use nalgebra::{Isometry3, Point3, Translation3, Vector3, Matrix3, Rotation3, UnitQuaternion};
+use nalgebra::{Isometry3, Point3, Vector3};
 use alga::general::SubsetOf;
 
-use knot::joint::{discrete_symmetric_angles, at_angles};
-use knot::symmetry::symmetries;
 use knot::visualize::joint_render::sliced_cylinder_faces;
-use knot::report::{KnotReports, JointsParity, RotationMatrix, Transform, KnotGeometry};
+use knot::report::{JointsParity, Transform, KnotGeometry};
 
 type Face = [(Point3<f32>, Vector3<f32>); 3];
 

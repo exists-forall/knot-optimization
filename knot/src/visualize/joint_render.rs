@@ -8,7 +8,6 @@ use super::kiss3d::scene::SceneNode;
 use super::kiss3d::resource::Mesh;
 
 use joint::JointSpec;
-use defaults::NUM_ANGLES;
 
 /// Count from `start` to `end` in `count` equally-spaced steps.
 fn float_steps_inclusive(start: f32, end: f32, count: u32) -> impl Iterator<Item = f32> {

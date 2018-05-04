@@ -25,10 +25,9 @@ use knot::joint::{at_angles, RelativeJoint};
 use knot::defaults;
 use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, REPULSION, REPULSION_EXPONENT,
                                               REPULSION_STRENGTH, MAX_REPULSION_STRENGTH,
-                                              CURVE_9_40_CHAIN_SIZE, RETURN_TO_INITIAL_WEIGHT,
-                                              RETURN_TO_INITIAL};
+                                              CURVE_9_40_CHAIN_SIZE, RETURN_TO_INITIAL_WEIGHT};
 use knot::visualize::joint_render::{add_joints, Style};
-use knot::symmetry::{symmetries, adjacent_symmetry};
+use knot::symmetry::symmetries;
 use knot::geometries::curve_9_40;
 use knot::continuous_optimize::{Chain, Leg, PhantomJoint, RepulsionChain};
 use knot::report::{KnotGeometry, Transform};

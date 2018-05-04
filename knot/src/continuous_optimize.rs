@@ -5,7 +5,6 @@ use nalgebra::{Isometry3, Point3, Translation3, Vector3};
 use joint::JointSpec;
 use cost::{cost_aligned, cost_opposing, CostParams};
 use isometry_adjust as iso_adj;
-use symmetry::symmetries_with_skip;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Leg {
