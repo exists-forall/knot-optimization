@@ -9,13 +9,13 @@ use alga::general::SubsetOf;
 /// calculated.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Thresholds {
-    /// The minimum unweighted distance cost (i.e. the squared euclidean distance) at which the axis
+    /// The maximum unweighted distance cost (i.e. the squared euclidean distance) at which the axis
     /// cost will be calculated.  Above this distance cost, the axis cost is set to the maximum
     /// regardless of its actual value. This prevents the optimizer from spuriously paying attention
     /// to axis alignment when the joints aren't anywhere close to connecting.
     pub dist_for_axis: f64,
 
-    /// The minimum unweighted axis cost (i.e. one minus the dot product of their axes) at which the
+    /// The maximum unweighted axis cost (i.e. one minus the dot product of their axes) at which the
     /// locking angle cost will be calculated.  Above this axis cost, the locking cost is set to the
     /// maximum regardless of its actual value.  This prevnets the optimizer from spuriously paying
     /// attention to locking angles when the joints aren't anywhere close to aligned.
