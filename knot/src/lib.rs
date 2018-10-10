@@ -1,6 +1,3 @@
-#![feature(inclusive_range_fields)]
-#![feature(slice_patterns)]
-
 extern crate alga;
 extern crate nalgebra;
 extern crate rand;

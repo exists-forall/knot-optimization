@@ -52,7 +52,7 @@ const NUM_JOINTS: u32 = 5;
 
 const WINDING_ANGLE_TOLERANCE: f64 = 0.1;
 
-const KEEP_COUNT: usize = 2048;
+const KEEP_COUNT: usize = 1;
 
 #[derive(Clone, Copy)]
 struct Knot {
