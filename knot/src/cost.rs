@@ -2,8 +2,8 @@ use std::f64::INFINITY;
 
 use approx_locking_angle::locking_angle_aligned;
 
-use nalgebra::{Isometry3, Quaternion, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
+use nalgebra::{Isometry3, Quaternion, UnitQuaternion, Vector3};
 
 /// Configurable parameters for determinng when certain terms in the cost function should be
 /// calculated.
@@ -93,7 +93,9 @@ pub fn costs_aligned(
             // From the observation that x^2 * (1 - x)^2 has local minima at x = 0 and x = 1 and a
             // local maximum at x = 1/2, at which it attains a maximum value of 1/16, and is
             // continuous and differentiable everywhere even when it is extended periodically mod 1.
-            16.0 * locking_interval_frac * locking_interval_frac * (1.0 - locking_interval_frac)
+            16.0 * locking_interval_frac
+                * locking_interval_frac
+                * (1.0 - locking_interval_frac)
                 * (1.0 - locking_interval_frac)
         } else {
             1.0
@@ -123,7 +125,8 @@ pub fn cost_aligned(
 ) -> f64 {
     let costs = costs_aligned(&cost_params.thresholds, num_angles, trans_0, trans_1);
 
-    costs.dist * cost_params.dist_weight + costs.axis * cost_params.axis_weight
+    costs.dist * cost_params.dist_weight
+        + costs.axis * cost_params.axis_weight
         + costs.locking * cost_params.locking_weight
 }
 

@@ -1,7 +1,7 @@
-extern crate kiss3d;
 extern crate alga;
-extern crate nalgebra;
 extern crate glfw;
+extern crate kiss3d;
+extern crate nalgebra;
 
 extern crate knot;
 extern crate serde;
@@ -10,31 +10,31 @@ extern crate serde_json;
 use std::env::args;
 use std::process::exit;
 
-use kiss3d::window::Window;
-use kiss3d::light::Light;
+use glfw::{Action, Key, WindowEvent};
 use kiss3d::camera::ArcBall;
-use glfw::{Action, WindowEvent, Key};
+use kiss3d::light::Light;
+use kiss3d::window::Window;
 
-use nalgebra::{Isometry3, Point3};
 use alga::general::SubsetOf;
+use nalgebra::{Isometry3, Point3};
 
-use knot::joint::{discrete_symmetric_angles, at_angles};
+use knot::defaults::{
+    joint_spec, COST_PARAMS, INITIAL_SYMMETRY_ADJUST, NUM_ANGLES, OPTIMIZATION_PARAMS,
+    SYMMETRY_COUNT,
+};
+use knot::joint::{at_angles, discrete_symmetric_angles};
+use knot::report::JointsParity;
 use knot::symmetry::symmetries;
 use knot::symmetry_adjust;
 use knot::visualize::joint_render::{add_joints, Style};
-use knot::defaults::{COST_PARAMS, OPTIMIZATION_PARAMS, NUM_ANGLES, INITIAL_SYMMETRY_ADJUST,
-                     SYMMETRY_COUNT, joint_spec};
-use knot::report::JointsParity;
 
 fn main() {
     let spec = joint_spec();
     let rel_joint_angles: Vec<i32> = match args().nth(1) {
-        Some(angles_json) => {
-            serde_json::from_str(&angles_json).unwrap_or_else(|_| {
-                eprintln!("Could not parse angles");
-                exit(1);
-            })
-        }
+        Some(angles_json) => serde_json::from_str(&angles_json).unwrap_or_else(|_| {
+            eprintln!("Could not parse angles");
+            exit(1);
+        }),
         None => vec![4, 0, 15, 0, 0],
     };
 
@@ -91,16 +91,14 @@ fn main() {
         for event in window.events().iter() {
             match event.value {
                 WindowEvent::Key(_, _, Action::Release, _) => {}
-                WindowEvent::Key(code, _, _, _) => {
-                    match code {
-                        Key::Up => adjust.radius += 0.1,
-                        Key::Down => adjust.radius -= 0.1,
-                        Key::Left => adjust.radial_angle -= 0.1,
-                        Key::Right => adjust.radial_angle += 0.1,
-                        Key::Enter => adjust = problem.solve_direct().0,
-                        _ => {}
-                    }
-                }
+                WindowEvent::Key(code, _, _, _) => match code {
+                    Key::Up => adjust.radius += 0.1,
+                    Key::Down => adjust.radius -= 0.1,
+                    Key::Left => adjust.radial_angle -= 0.1,
+                    Key::Right => adjust.radial_angle += 0.1,
+                    Key::Enter => adjust = problem.solve_direct().0,
+                    _ => {}
+                },
                 _ => {}
             }
         }

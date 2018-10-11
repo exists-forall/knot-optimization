@@ -5,16 +5,18 @@ extern crate serde_json;
 
 extern crate knot;
 
+use std::env::args;
 use std::fs::File;
 use std::process::exit;
-use std::env::args;
 
-use nalgebra::Isometry3;
 use alga::general::SubsetOf;
+use nalgebra::Isometry3;
 
-use knot::joint::{discrete_symmetric_angles, at_angles};
+use knot::joint::{at_angles, discrete_symmetric_angles};
+use knot::report::{
+    complete_report, complete_reports, CompleteKnotReports, JointsParity, KnotGeometry, Transform,
+};
 use knot::symmetry::symmetries_with_skip;
-use knot::report::{CompleteKnotReports, JointsParity, Transform, KnotGeometry, complete_report, complete_reports};
 
 fn main() {
     let filename = args().nth(1).unwrap_or_else(|| {
@@ -26,8 +28,7 @@ fn main() {
         .unwrap_or_else(|| {
             eprintln!("Expected a result index");
             exit(1);
-        })
-        .parse::<usize>()
+        }).parse::<usize>()
         .unwrap_or_else(|_| {
             eprintln!("Index must be an integer");
             exit(1)
@@ -36,10 +37,11 @@ fn main() {
         eprintln!("Could not open file {}", filename);
         exit(1);
     });
-    let reports: CompleteKnotReports = complete_reports(serde_json::from_reader(file).unwrap_or_else(|_| {
-        eprintln!("Could not parse input file");
-        exit(1);
-    }));
+    let reports: CompleteKnotReports =
+        complete_reports(serde_json::from_reader(file).unwrap_or_else(|_| {
+            eprintln!("Could not parse input file");
+            exit(1);
+        }));
 
     if !(index < reports.knots.len()) {
         eprintln!(

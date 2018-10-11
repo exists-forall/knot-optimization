@@ -1,9 +1,9 @@
 use std::f64::consts::PI;
-use std::iter::once;
 use std::fmt::Debug;
+use std::iter::once;
 
-use nalgebra::{Isometry3, Point3, Vector2, Vector3};
 use joint::JointSpec;
+use nalgebra::{Isometry3, Point3, Vector2, Vector3};
 use symmetry::symmetries;
 
 // Swap to collision_grid to enable experimental spatial partitioning optimization
@@ -43,9 +43,8 @@ impl<I: Iterator<Item = Isometry3<f64>>> Iterator for Points<I> {
                     self.state = PointsState::Done;
                     Some(Point3 {
                         coords: (prev_trans.expect("Should have at least one joint")
-                            * self.spec.origin_to_out())
-                            .translation
-                            .vector,
+                            * self.spec.origin_to_out()).translation
+                        .vector,
                     })
                 }
             },

@@ -2,8 +2,8 @@ use std::f64::consts::PI;
 use std::f64::INFINITY;
 use std::iter::once;
 
-use joint::JointSpec;
 use cost::{CostParams, Thresholds};
+use joint::JointSpec;
 use symmetry_adjust::{OptimizationParams, Vars};
 
 pub const COST_PARAMS: CostParams = CostParams {

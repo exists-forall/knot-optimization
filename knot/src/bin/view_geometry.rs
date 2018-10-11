@@ -1,25 +1,25 @@
-extern crate kiss3d;
 extern crate alga;
-extern crate nalgebra;
 extern crate glfw;
+extern crate kiss3d;
+extern crate nalgebra;
 extern crate serde;
 extern crate serde_json;
 
 extern crate knot;
 
+use std::env::args;
 use std::fs::File;
 use std::process::exit;
-use std::env::args;
 
-use kiss3d::window::Window;
-use kiss3d::light::Light;
 use kiss3d::camera::ArcBall;
+use kiss3d::light::Light;
+use kiss3d::window::Window;
 
-use nalgebra::Point3;
 use alga::general::SubsetOf;
+use nalgebra::Point3;
 
+use knot::report::{JointsParity, KnotGeometry, Transform};
 use knot::visualize::joint_render::{add_joints, Style};
-use knot::report::{JointsParity, Transform, KnotGeometry};
 
 fn from_hex_color(r: u8, g: u8, b: u8) -> (f32, f32, f32) {
     ((r as f32) / 255.0, (g as f32) / 255.0, (b as f32) / 255.0)

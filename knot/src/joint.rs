@@ -1,7 +1,7 @@
 use std::f64::consts::PI;
 
-use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
+use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector3};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 

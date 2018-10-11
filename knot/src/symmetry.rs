@@ -1,7 +1,7 @@
 use std::f64::consts::PI;
 
-use nalgebra::{Quaternion, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
+use nalgebra::{Quaternion, UnitQuaternion, Vector3};
 
 /// Return a rotation by pi radians about the x-axis. Faster than, but equivalent to,
 /// `UnitQuaternion::from_axis_angle(&Vector3::x_axis(), PI)`.
@@ -46,14 +46,13 @@ pub fn adjacent_symmetry(count: u32, skip: u32) -> UnitQuaternion<f64> {
     (UnitQuaternion::from_axis_angle(
         &Vector3::z_axis(),
         2.0 * (skip as f64) * PI / (count as f64),
-    ) * quaternion_x_pi())
-        .to_superset()
+    ) * quaternion_x_pi()).to_superset()
 }
 
 #[cfg(test)]
 mod test {
-    use symmetry::*;
     use std::f64::EPSILON;
+    use symmetry::*;
 
     #[test]
     fn d3() {

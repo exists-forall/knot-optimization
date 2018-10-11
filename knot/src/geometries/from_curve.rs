@@ -62,7 +62,6 @@ pub fn from_curve_natural_parameterize<F: Fn(f64) -> Point3<f64>>(
                 }
             }
             None
-        })
-        .take_while(|p| p.is_some())
+        }).take_while(|p| p.is_some())
         .map(|p| p.unwrap())
 }

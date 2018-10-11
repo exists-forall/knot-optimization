@@ -1,39 +1,39 @@
 extern crate alga;
+extern crate clap;
 extern crate nalgebra;
+extern crate rayon;
 extern crate serde;
 extern crate serde_json;
-extern crate rayon;
-extern crate clap;
 
 extern crate knot;
 
 use std::cmp::Ordering;
-use std::fs::File;
-use std::process::exit;
 use std::f64::consts::PI;
 use std::f64::INFINITY;
+use std::fs::File;
+use std::process::exit;
 
 use nalgebra::Isometry3;
 
-use knot::joint::{JointSpec, at_angles, discrete_symmetric_angles};
-use knot::symmetry_adjust;
-use knot::symmetry_adjust::Problem;
+use knot::approx_locking_angle::locking_angle_opposing;
+use knot::cost::Costs;
 use knot::defaults;
 use knot::defaults::{COST_PARAMS, NUM_ANGLES};
-use knot::report::{KnotReport, KnotReports, JointsParity};
-use knot::filter::{points, WindingAngles, collisions_with_symmetry, CollisionOutcome};
-use knot::cost::Costs;
-use knot::approx_locking_angle::locking_angle_opposing;
+use knot::filter::{collisions_with_symmetry, points, CollisionOutcome, WindingAngles};
+use knot::joint::{at_angles, discrete_symmetric_angles, JointSpec};
+use knot::report::{JointsParity, KnotReport, KnotReports};
 use knot::symmetry::adjacent_symmetry;
+use knot::symmetry_adjust;
+use knot::symmetry_adjust::Problem;
 
-use rayon::prelude::*;
 use rayon::prelude::IntoParallelIterator;
+use rayon::prelude::*;
 use rayon::slice::ParallelSliceMut;
 
-use clap::{Arg, App};
+use clap::{App, Arg};
 
 macro_rules! exhaustive {
-    ($symbols: expr; $count: expr) => { {
+    ($symbols: expr; $count: expr) => {{
         const SYMBOLS: u32 = $symbols;
         const COUNT: u32 = $count;
         (0u64..SYMBOLS.pow(COUNT) as u64).into_par_iter().map(|i| {
@@ -45,7 +45,7 @@ macro_rules! exhaustive {
             }
             result
         })
-    } }
+    }};
 }
 
 const NUM_JOINTS: u32 = 5;
@@ -84,14 +84,13 @@ impl Eq for NanGreatest {}
 
 impl Ord for NanGreatest {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.0.partial_cmp(&other.0).unwrap_or_else(|| match (
-            self.0.is_nan(),
-            other.0.is_nan(),
-        ) {
-            (true, false) => Ordering::Greater,
-            (false, true) => Ordering::Less,
-            (_, _) => Ordering::Equal,
-        })
+        self.0
+            .partial_cmp(&other.0)
+            .unwrap_or_else(|| match (self.0.is_nan(), other.0.is_nan()) {
+                (true, false) => Ordering::Greater,
+                (false, true) => Ordering::Less,
+                (_, _) => Ordering::Equal,
+            })
     }
 }
 
@@ -150,9 +149,8 @@ fn generate_knot(
     let costs = problem.costs(&vars);
 
     let symmetry_adjust_trans = vars.transform();
-    let adjusted_points = points(spec, joint_transformations.iter().cloned()).map(
-        |point| symmetry_adjust_trans * point,
-    );
+    let adjusted_points = points(spec, joint_transformations.iter().cloned())
+        .map(|point| symmetry_adjust_trans * point);
 
     let mut winding_angles = WindingAngles::new();
     let mut min_z = INFINITY;
@@ -171,8 +169,8 @@ fn generate_knot(
     }
 
     let winding_goal = (skip as f64) * PI / (symmetry as f64);
-    let good_winding = (winding_angles.total().abs() - winding_goal).abs() <=
-        WINDING_ANGLE_TOLERANCE;
+    let good_winding =
+        (winding_angles.total().abs() - winding_goal).abs() <= WINDING_ANGLE_TOLERANCE;
     let good_z = (max_z - min_z) >= spec.radius();
     let good_r = (max_r - min_r) >= 2.0 * spec.radius() && min_r >= spec.radius();
 
@@ -181,9 +179,8 @@ fn generate_knot(
         // stack-allocated structure, although the compile-time-size issues could be tricky.
         // let centers = include_midpoints(points(spec, joint_transformations.iter().cloned()))
         //     .map(|point| symmetry_adjust_trans * point);
-        let centers = points(spec, joint_transformations.iter().cloned()).map(
-            |point| symmetry_adjust_trans * point,
-        );
+        let centers = points(spec, joint_transformations.iter().cloned())
+            .map(|point| symmetry_adjust_trans * point);
 
         let collision_outcome = collisions_with_symmetry(symmetry, skip, centers, spec.radius());
         match collision_outcome {
@@ -237,15 +234,12 @@ fn generate_reports(
 
     let reports = knots[0..KEEP_COUNT.min(knots.len())]
         .iter()
-        .map(|knot| {
-            KnotReport {
-                angles: knot.angles.iter().map(|&angle| angle as i32).collect(),
-                final_angle: Some(knot.final_angle),
-                symmetry_adjust: Some(knot.symmetry_adjust),
-                costs: Some(knot.costs),
-            }
-        })
-        .collect();
+        .map(|knot| KnotReport {
+            angles: knot.angles.iter().map(|&angle| angle as i32).collect(),
+            final_angle: Some(knot.final_angle),
+            symmetry_adjust: Some(knot.symmetry_adjust),
+            costs: Some(knot.costs),
+        }).collect();
 
     KnotReports {
         joint_spec: Some(spec),
@@ -274,39 +268,36 @@ fn main() {
                 .help("Sets the output file path")
                 .takes_value(true)
                 .required(true),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("symmetry")
                 .long("symmetry")
                 .value_name("INT")
                 .default_value(&default_symmetry_str)
                 .help("Sets dihedral-N symmetry"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("skip")
                 .long("skip")
                 .value_name("INT")
                 .default_value(&default_skip_str)
                 .help("Sets how many times the knot winds around the z axis"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("bend-angle")
                 .long("bend-angle")
                 .value_name("DEGREES")
                 .default_value(&default_bend_angle_str)
                 .help("Sets bend angle of all joints"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("radius")
                 .long("radius")
                 .value_name("FLOAT")
                 .default_value(&default_radius_str)
                 .help("Sets cylinder radius of all joints"),
-        )
-        .arg(Arg::with_name("odd").short("o").long("odd").help(
-            "Use an odd number of segments in each horseshoe",
-        ))
-        .get_matches();
+        ).arg(
+            Arg::with_name("odd")
+                .short("o")
+                .long("odd")
+                .help("Use an odd number of segments in each horseshoe"),
+        ).get_matches();
 
     let output = matches.value_of("output").unwrap();
     let symmetry = matches
@@ -332,8 +323,7 @@ fn main() {
         .unwrap_or_else(|err| {
             eprintln!("Invalid bend angle: {}", err);
             exit(1);
-        })
-        .to_radians();
+        }).to_radians();
     let radius = matches
         .value_of("radius")
         .unwrap()

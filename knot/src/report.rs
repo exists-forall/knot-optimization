@@ -1,12 +1,12 @@
-use nalgebra::{Isometry3, Matrix3, Rotation3, Translation3, UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
+use nalgebra::{Isometry3, Matrix3, Rotation3, Translation3, UnitQuaternion, Vector3};
 
-use joint::{at_angles, discrete_symmetric_angles, JointSpec};
-use symmetry_adjust::{self, Problem};
-use cost::{CostParams, Costs};
 use approx_locking_angle::locking_angle_opposing;
-use symmetry::adjacent_symmetry;
+use cost::{CostParams, Costs};
 use defaults;
+use joint::{at_angles, discrete_symmetric_angles, JointSpec};
+use symmetry::adjacent_symmetry;
+use symmetry_adjust::{self, Problem};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KnotReport {
@@ -110,7 +110,8 @@ pub fn complete_report(reports: &CompleteKnotReports, index: usize) -> CompleteK
             reports.num_angles,
             &(symmetry_adjust_trans * last_joint_out),
             &(adjacent_symmetry(reports.symmetry_count, reports.symmetry_skip)
-                * symmetry_adjust_trans * last_joint_out),
+                * symmetry_adjust_trans
+                * last_joint_out),
         );
 
         (vars, costs, final_angle)

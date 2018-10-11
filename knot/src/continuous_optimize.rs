@@ -2,9 +2,9 @@ use std::ops::{Deref, DerefMut};
 
 use nalgebra::{Isometry3, Point3, Translation3, Vector3};
 
-use joint::JointSpec;
 use cost::{cost_aligned, cost_opposing, CostParams};
 use isometry_adjust as iso_adj;
+use joint::JointSpec;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Leg {
@@ -56,8 +56,7 @@ impl Chain {
             .iter()
             .map(|joint| Point3 {
                 coords: joint.translation.vector,
-            })
-            .collect();
+            }).collect();
 
         Chain {
             spec,
@@ -170,8 +169,7 @@ impl Chain {
                     pre_joint = joint;
                     pre_leg = Leg::Outgoing;
                     diff
-                })
-                .collect::<Vec<_>>()
+                }).collect::<Vec<_>>()
         };
 
         // Ratios should be in DESCENDING order!
@@ -235,9 +233,9 @@ impl Chain {
             let diff = initial - Point3 {
                 coords: joint.translation.vector,
             };
-            *joint = Translation3::from_vector(
-                diff * self.return_to_initial_weight * self.descent_rate,
-            ) * *joint;
+            *joint =
+                Translation3::from_vector(diff * self.return_to_initial_weight * self.descent_rate)
+                    * *joint;
         }
     }
 }
@@ -316,7 +314,8 @@ impl RepulsionChain {
                 for j in 0..self.chain.joints.len() {
                     let neighbors_in_same_branch = sym_i == 0 && within(i, j, 1);
                     let neighbors_at_start = sym_i == 1 && i == 0 && j == 0; // DEBUG
-                    let neighbors_at_end = sym_i == 2 && i == self.chain.joints.len() - 1
+                    let neighbors_at_end = sym_i == 2
+                        && i == self.chain.joints.len() - 1
                         && j == self.chain.joints.len() - 1;
 
                     let neighbors =
@@ -327,13 +326,12 @@ impl RepulsionChain {
                             - (sym * self.chain.joints[j]).translation.vector;
                         // surface distance
                         let surf_dist = diff.norm() - self.chain.spec.radius() * 2.0;
-                        self.forces[i] += diff / diff.norm()
-                            * clamped_inverse_power(
-                                surf_dist,
-                                self.repulsion_exp,
-                                self.repulsion_strength,
-                                self.max_repulsion_strength,
-                            );
+                        self.forces[i] += diff / diff.norm() * clamped_inverse_power(
+                            surf_dist,
+                            self.repulsion_exp,
+                            self.repulsion_strength,
+                            self.max_repulsion_strength,
+                        );
                     }
                 }
             }

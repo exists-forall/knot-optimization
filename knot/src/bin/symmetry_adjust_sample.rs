@@ -9,14 +9,14 @@ extern crate serde_json;
 
 extern crate knot;
 
+use std::env::args;
 use std::f64::consts::PI;
 use std::fs::File;
 use std::process::exit;
-use std::env::args;
 
-use knot::symmetry_adjust::Vars;
 use knot::defaults::{COST_PARAMS, NUM_ANGLES, SYMMETRY_COUNT};
 use knot::rand_problem::rand_problem;
+use knot::symmetry_adjust::Vars;
 
 #[derive(Clone, Copy, Debug, Serialize)]
 struct Sample {
@@ -60,8 +60,7 @@ fn run_experiments() -> Vec<ExperimentReport> {
                 }
             }
             samples
-        })
-        .collect()
+        }).collect()
 }
 
 fn main() {

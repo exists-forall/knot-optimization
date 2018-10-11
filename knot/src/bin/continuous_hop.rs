@@ -4,24 +4,24 @@ extern crate serde_json;
 
 extern crate knot;
 
+use std::env::args;
 use std::f64::consts::PI;
 use std::f64::INFINITY;
 use std::fs::File;
 use std::process::exit;
-use std::env::args;
 
-use nalgebra::{UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
+use nalgebra::{UnitQuaternion, Vector3};
 
-use knot::geometries::curve_9_40;
-use knot::defaults::continuous_optimization::{COST_PARAMS, RATE, STEPS, REPULSION,
-                                              REPULSION_EXPONENT, REPULSION_STRENGTH,
-                                              MAX_REPULSION_STRENGTH, CURVE_9_40_CHAIN_SIZE,
-                                              RETURN_TO_INITIAL_WEIGHT, RETURN_TO_INITIAL};
-use knot::symmetry::{symmetries, symmetries_with_skip};
 use knot::continuous_optimize::{Chain, Leg, PhantomJoint, RepulsionChain};
-use knot::report::{KnotGeometry, Transform, JointsParity};
+use knot::defaults::continuous_optimization::{
+    COST_PARAMS, CURVE_9_40_CHAIN_SIZE, MAX_REPULSION_STRENGTH, RATE, REPULSION,
+    REPULSION_EXPONENT, REPULSION_STRENGTH, RETURN_TO_INITIAL, RETURN_TO_INITIAL_WEIGHT, STEPS,
+};
+use knot::geometries::curve_9_40;
 use knot::isometry_adjust;
+use knot::report::{JointsParity, KnotGeometry, Transform};
+use knot::symmetry::{symmetries, symmetries_with_skip};
 
 const TAU: f64 = 2.0 * PI;
 
@@ -93,27 +93,25 @@ fn main() {
                 geometry.parity,
             )
         }
-        None => {
-            (
-                RepulsionChain::new(
-                    curve_9_40::chain(
-                        CURVE_9_40_CHAIN_SIZE,
-                        0.7,
-                        COST_PARAMS,
-                        RETURN_TO_INITIAL_WEIGHT,
-                        RATE,
-                    ),
-                    symmetries(3).map(|quat| quat.to_superset()).collect(),
-                    REPULSION_EXPONENT,
-                    REPULSION_STRENGTH,
-                    MAX_REPULSION_STRENGTH,
+        None => (
+            RepulsionChain::new(
+                curve_9_40::chain(
+                    CURVE_9_40_CHAIN_SIZE,
+                    0.7,
+                    COST_PARAMS,
+                    RETURN_TO_INITIAL_WEIGHT,
+                    RATE,
                 ),
-                symmetries_with_skip(3, 4)
-                    .map(|iso| Transform::from_isometry(iso.to_superset()))
-                    .collect(),
-                JointsParity::Even,
-            )
-        }
+                symmetries(3).map(|quat| quat.to_superset()).collect(),
+                REPULSION_EXPONENT,
+                REPULSION_STRENGTH,
+                MAX_REPULSION_STRENGTH,
+            ),
+            symmetries_with_skip(3, 4)
+                .map(|iso| Transform::from_isometry(iso.to_superset()))
+                .collect(),
+            JointsParity::Even,
+        ),
     };
     let mut best_cost = optimize(&mut best_chain, STEPS);
     eprintln!("Original cost: {}", best_cost);
@@ -135,8 +133,9 @@ fn main() {
                 };
 
                 let mut offset_chain = best_chain.clone();
-                offset_chain.joints[i] = offset_chain.joints[i] *
-                    UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
+                offset_chain.joints[i] =
+                    offset_chain.joints[i]
+                        * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
                 let cost = optimize(&mut offset_chain, STEPS);
                 eprintln!("{} {:+}: {}", i, offset, cost);
                 if cost < new_best_cost {

@@ -1,5 +1,5 @@
-use rand::Rng;
 use rand::distributions::{IndependentSample, Normal};
+use rand::Rng;
 
 use cost::CostParams;
 use symmetry_adjust::Problem;

@@ -2,8 +2,8 @@ use std::f64::consts::{FRAC_PI_2, PI};
 
 use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector2, Vector3};
 
-use symmetry;
 use cost::{cost_opposing, costs_opposing, CostParams, Costs};
+use symmetry;
 
 /// Analog parameters for how a chain of joints can be positioned in space with symmetry.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -124,7 +124,7 @@ impl Problem {
             last_joint_out.translation.vector.y,
             last_joint_out.translation.vector.z,
         ).norm_squared()
-            .recip();
+        .recip();
 
         Problem {
             cost_params: cost_params,
@@ -185,7 +185,8 @@ impl Problem {
         );
         self.apply_step(vars, &differential.scale(-opt_params.descent_rate));
         differential.d_radius * differential.d_radius
-            + differential.d_radial_angle * differential.d_radial_angle
+            + differential.d_radial_angle
+                * differential.d_radial_angle
                 * self.radial_angle_normalizer
     }
 

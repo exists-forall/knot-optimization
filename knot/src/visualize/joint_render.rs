@@ -1,11 +1,11 @@
+use std::cell::RefCell;
 use std::f32::consts::PI;
 use std::rc::Rc;
-use std::cell::RefCell;
 
-use nalgebra::{Isometry3, Point3, Translation3, UnitQuaternion, Vector3};
-use alga::general::SubsetOf;
-use super::kiss3d::scene::SceneNode;
 use super::kiss3d::resource::Mesh;
+use super::kiss3d::scene::SceneNode;
+use alga::general::SubsetOf;
+use nalgebra::{Isometry3, Point3, Translation3, UnitQuaternion, Vector3};
 
 use joint::JointSpec;
 
@@ -218,6 +218,5 @@ pub fn add_joints(
             color = !color;
 
             group
-        })
-        .collect()
+        }).collect()
 }

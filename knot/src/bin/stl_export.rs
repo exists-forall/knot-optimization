@@ -1,22 +1,22 @@
-extern crate kiss3d;
 extern crate alga;
-extern crate nalgebra;
 extern crate glfw;
+extern crate kiss3d;
+extern crate nalgebra;
 extern crate serde;
 extern crate serde_json;
 
 extern crate knot;
 
-use std::fs::File;
-use std::process::exit;
 use std::env::args;
+use std::fs::File;
 use std::io;
+use std::process::exit;
 
-use nalgebra::{Isometry3, Point3, Vector3};
 use alga::general::SubsetOf;
+use nalgebra::{Isometry3, Point3, Vector3};
 
+use knot::report::{JointsParity, KnotGeometry, Transform};
 use knot::visualize::joint_render::sliced_cylinder_faces;
-use knot::report::{JointsParity, Transform, KnotGeometry};
 
 type Face = [(Point3<f32>, Vector3<f32>); 3];
 
@@ -33,18 +33,14 @@ fn write_STL_face(writer: &mut io::Write, face: &Face) -> io::Result<()> {
     writeln!(
         writer,
         "face normal {:e} {:e} {:e}",
-        avg_normal.x,
-        avg_normal.y,
-        avg_normal.z
+        avg_normal.x, avg_normal.y, avg_normal.z
     )?;
     writeln!(writer, "  outer loop")?;
     for &(vertex, _) in face {
         writeln!(
             writer,
             "    vertex {:e} {:e} {:e}",
-            vertex.x,
-            vertex.y,
-            vertex.z,
+            vertex.x, vertex.y, vertex.z,
         )?;
     }
     writeln!(writer, "  endloop")?;

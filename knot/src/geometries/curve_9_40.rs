@@ -1,16 +1,16 @@
 use std::f64::consts::PI;
 
-use nalgebra::{UnitQuaternion, Vector3};
 use alga::general::SubsetOf;
+use nalgebra::{UnitQuaternion, Vector3};
 
-use defaults;
-use isometry_adjust as iso_adj;
 use continuous_optimize::{Chain, Leg, PhantomJoint};
 use cost::CostParams;
+use defaults;
+use isometry_adjust as iso_adj;
 use symmetry::adjacent_symmetry;
 
-use geometries::spherical::spherical;
 use geometries::from_curve::from_curve_natural_parameterize;
+use geometries::spherical::spherical;
 
 const TAU: f64 = 2.0 * PI;
 

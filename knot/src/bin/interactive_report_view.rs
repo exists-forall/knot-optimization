@@ -1,29 +1,31 @@
-extern crate kiss3d;
 extern crate alga;
-extern crate nalgebra;
 extern crate glfw;
+extern crate kiss3d;
+extern crate nalgebra;
 extern crate serde;
 extern crate serde_json;
 
 extern crate knot;
 
+use std::env::args;
 use std::fs::File;
 use std::process::exit;
-use std::env::args;
 
-use kiss3d::window::Window;
-use kiss3d::light::Light;
+use glfw::{Action, Key, WindowEvent};
 use kiss3d::camera::ArcBall;
+use kiss3d::light::Light;
 use kiss3d::scene::SceneNode;
-use glfw::{Action, WindowEvent, Key};
+use kiss3d::window::Window;
 
-use nalgebra::{Isometry3, Point3};
 use alga::general::SubsetOf;
+use nalgebra::{Isometry3, Point3};
 
-use knot::joint::{discrete_symmetric_angles, at_angles};
+use knot::joint::{at_angles, discrete_symmetric_angles};
+use knot::report::{
+    complete_report, complete_reports, CompleteKnotReports, JointsParity, KnotReports,
+};
 use knot::symmetry::symmetries;
 use knot::visualize::joint_render::{add_joints, Style};
-use knot::report::{KnotReports, CompleteKnotReports, JointsParity, complete_report, complete_reports};
 
 struct ReportsView {
     window: Window,
@@ -81,12 +83,11 @@ impl ReportsView {
             &mut group,
             &self.reports.joint_spec,
             self.reports.num_angles,
-            (self.reports.symmetry_count as usize) *
-                (2 * report.angles.len() +
-                     match self.reports.parity {
-                         JointsParity::Even => 0,
-                         JointsParity::Odd => 1,
-                     }),
+            (self.reports.symmetry_count as usize)
+                * (2 * report.angles.len() + match self.reports.parity {
+                    JointsParity::Even => 0,
+                    JointsParity::Odd => 1,
+                }),
             Style::Flat,
         );
         let joint_transforms = at_angles(
@@ -99,8 +100,8 @@ impl ReportsView {
             match self.reports.parity {
                 JointsParity::Even => Isometry3::identity(),
                 JointsParity::Odd => {
-                    self.reports.joint_spec.origin_to_symmetric() *
-                        self.reports.joint_spec.origin_to_out()
+                    self.reports.joint_spec.origin_to_symmetric()
+                        * self.reports.joint_spec.origin_to_out()
                 }
             },
         ).collect::<Vec<_>>();
@@ -115,9 +116,9 @@ impl ReportsView {
                 JointsParity::Odd => {
                     if first_in_horseshoe {
                         nodes[node_i].set_local_transformation(
-                            (sym_trans * adjust_trans *
-                                 self.reports.joint_spec.origin_to_symmetric())
-                                .to_superset(),
+                            (sym_trans
+                                * adjust_trans
+                                * self.reports.joint_spec.origin_to_symmetric()).to_superset(),
                         );
                         nodes[node_i].set_color(0.2, 0.2, 0.2);
                         node_i += 1;
@@ -178,23 +179,21 @@ fn main() {
         for event in reports_view.window.events().iter() {
             match event.value {
                 WindowEvent::Key(_, _, Action::Release, _) => {}
-                WindowEvent::Key(code, _, _, _) => {
-                    match code {
-                        Key::Left => {
-                            if report_i > 0 {
-                                report_i -= 1;
-                                reports_view.view_report(report_i);
-                            }
+                WindowEvent::Key(code, _, _, _) => match code {
+                    Key::Left => {
+                        if report_i > 0 {
+                            report_i -= 1;
+                            reports_view.view_report(report_i);
                         }
-                        Key::Right => {
-                            if report_i < reports_view.reports.knots.len() - 1 {
-                                report_i += 1;
-                                reports_view.view_report(report_i);
-                            }
-                        }
-                        _ => {}
                     }
-                }
+                    Key::Right => {
+                        if report_i < reports_view.reports.knots.len() - 1 {
+                            report_i += 1;
+                            reports_view.view_report(report_i);
+                        }
+                    }
+                    _ => {}
+                },
                 _ => {}
             }
         }

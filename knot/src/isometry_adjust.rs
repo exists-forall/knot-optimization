@@ -99,7 +99,9 @@ impl IsometryDifferential {
     }
 
     pub fn magnitude_squ(&self, radius: f64) -> f64 {
-        self.d_x * self.d_x + self.d_y * self.d_y + self.d_z * self.d_z
+        self.d_x * self.d_x
+            + self.d_y * self.d_y
+            + self.d_z * self.d_z
             + (self.d_i * self.d_i + self.d_j * self.d_j + self.d_k * self.d_k) / (radius * radius)
     }
 }

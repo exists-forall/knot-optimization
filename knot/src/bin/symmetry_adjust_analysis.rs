@@ -9,13 +9,13 @@ extern crate serde_json;
 
 extern crate knot;
 
+use std::env::args;
 use std::fs::File;
 use std::process::exit;
-use std::env::args;
 
-use knot::symmetry_adjust::OptimizationParams;
-use knot::defaults::{COST_PARAMS, NUM_ANGLES, SYMMETRY_COUNT, INITIAL_SYMMETRY_ADJUST};
+use knot::defaults::{COST_PARAMS, INITIAL_SYMMETRY_ADJUST, NUM_ANGLES, SYMMETRY_COUNT};
 use knot::rand_problem::rand_problem;
+use knot::symmetry_adjust::OptimizationParams;
 
 #[derive(Clone, Debug, Serialize)]
 struct ExperimentReport {
@@ -55,10 +55,8 @@ fn run_experiments() -> Vec<Vec<ExperimentReport>> {
                         descent_rate,
                         convergence,
                     }
-                })
-                .collect()
-        })
-        .collect()
+                }).collect()
+        }).collect()
 }
 
 fn main() {
