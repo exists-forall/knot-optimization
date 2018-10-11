@@ -1,5 +1,3 @@
-#![feature(type_ascription)]
-
 extern crate alga;
 extern crate glfw;
 extern crate kiss3d;
@@ -280,10 +278,10 @@ fn main() {
                     angle,
                 });
                 for joint in at_angles(rel_joints, Isometry3::identity()) {
-                    nodes[i].set_local_transformation(
-                        (Translation3::new(15.0, 0.0, 0.0).to_superset(): Isometry3<f32>)
-                            * (joint.to_superset(): Isometry3<f32>),
-                    );
+                    let translation: Isometry3<f32> =
+                        Translation3::new(15.0, 0.0, 0.0).to_superset();
+                    let joint_iso: Isometry3<f32> = joint.to_superset();
+                    nodes[i].set_local_transformation(translation * joint_iso);
                     i += 1;
                 }
             }
