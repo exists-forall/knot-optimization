@@ -3,7 +3,7 @@ use std::f64::consts::PI;
 use alga::general::SubsetOf;
 use nalgebra::{UnitQuaternion, Vector3};
 
-use continuous_optimize::{Chain, Leg, PhantomJoint};
+use optimize_tools::{Chain, Leg, PhantomJoint};
 use cost::CostParams;
 use defaults;
 use isometry_adjust as iso_adj;

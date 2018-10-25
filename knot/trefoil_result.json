@@ -1,1 +1,42 @@
-{"joint_spec":{"dist_in":1.0,"dist_out":1.0,"bend_angle":0.5235987755982988,"radius":1.25},"num_angles":16,"symmetry_count":3,"symmetry_skip":2,"cost_params":{"dist_weight":5.0,"axis_weight":1.0,"locking_weight":1.0,"thresholds":{"dist_for_axis":4.0,"axis_for_locking":0.2}},"knots":[{"angles":[15,1,14,2,4],"final_angle":0.997701781164236,"symmetry_adjust":{"radius":6.38921885073977,"radial_angle":0.7308538504410155},"costs":{"dist":8.38164711797325e-31,"axis":0.0014246342200069373,"locking":0.000084120963277346}}],"parity":"Odd"}
+{
+  "joint_spec": {
+    "dist_in": 1,
+    "dist_out": 1,
+    "bend_angle": 0.5235987755982988,
+    "radius": 1.25
+  },
+  "num_angles": 16,
+  "symmetry_count": 3,
+  "symmetry_skip": 2,
+  "cost_params": {
+    "dist_weight": 5,
+    "axis_weight": 1,
+    "locking_weight": 1,
+    "thresholds": {
+      "dist_for_axis": 4,
+      "axis_for_locking": 0.2
+    }
+  },
+  "knots": [
+    {
+      "angles": [
+        15,
+        1,
+        14,
+        2,
+        4
+      ],
+      "final_angle": 0.997701781164236,
+      "symmetry_adjust": {
+        "radius": 6.38921885073977,
+        "radial_angle": 0.7308538504410155
+      },
+      "costs": {
+        "dist": 8.38164711797325e-31,
+        "axis": 0.0014246342200069373,
+        "locking": 0.000084120963277346
+      }
+    }
+  ],
+  "parity": "Odd"
+}

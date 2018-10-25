@@ -36,6 +36,56 @@ const TAU: f64 = 2.0 * PI;
 
 const DEBUG_ANGLES: bool = false;
 
+
+
+impl simulated_annealing for RepulsionChain {
+    const starts = 10;
+    const two_joint_turn_weight = 0.5;
+    const steps: i32 = 100;
+
+    pub fn simple_cooling_schedule(step: f64, cost_diff: f64) -> f64 {
+        std::f64::consts::E.powf(cost_diff/step)
+    }
+    pub fn simul_anneal(&mut self, ratios: &[f64], tolerance: f64,
+        repulsion: bool, return_to_initial: bool) -> f64 {
+        /*
+        place joints in the correct location on the modeled curve
+        (or, place the two end joints, and greedily place the rest? randomly place the rest?)
+        best_chain = current chain
+        best_cost = best_chain.cost
+        for (i = 0; i < starts; i++) {
+            for (j=0; j < steps; j++>) {
+                randomly select a bit b, p(0) = two_joint_turn_weight
+                flip another bit to determine which way first joint turns.
+                if b {
+                    generate move by selecting three random joints along with that second flipped bit
+                } else {
+                    generate move by selecting two random joints along with that second flipped bit
+                }
+                generate phantom chain
+                do move on phantom chain
+                optimize phantom chain
+                find new cost
+                if simple_cooling_schedule(step: f64, cost_diff: f64) = p >= 1 {
+                    do move
+                } else {
+                    do move with probability p
+                }
+                update cost, chain if move has been done
+            }
+
+            if new_chain_cost < best_cost {
+                best_chain = new_chain
+                best_cost = new_chain_cost
+            }
+        }
+        set chain to be best chain
+        return cost of the chain
+        */
+
+    }
+}
+
 fn main() {
     let mut chain = match args().nth(1) {
         Some(filename) => {
@@ -97,7 +147,7 @@ fn main() {
         ),
     };
 
-    let mut window = Window::new("Continuous Optimization");
+    let mut window = Window::new("Simulated Annealing");
     window.set_light(Light::StickToCamera);
 
     let mut nodes = add_joints(
@@ -286,17 +336,7 @@ fn main() {
                 }
             }
         }
-        for _ in 0..1000 {
-            chain.adaptive_optimize(&[2.0, 1.0, 0.5], 0.5);
-            step += 1;
 
-            if REPULSION {
-                chain.repulse();
-            }
-
-            if return_to_initial {
-                chain.return_to_initial();
-            }
-        }
+        chain.simul_anneal(&[2.0, 1.0, 0.5], 0.5, replusion, return_to_initial);
     }
 }

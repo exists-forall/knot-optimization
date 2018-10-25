@@ -13,7 +13,7 @@ extern crate approx;
 pub mod approx_locking_angle;
 pub mod collision_grid;
 pub mod collision_grid_trivial;
-pub mod continuous_optimize;
+pub mod optimize_tools;
 pub mod cost;
 pub mod defaults;
 pub mod filter;

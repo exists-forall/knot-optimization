@@ -13,7 +13,7 @@ use std::process::exit;
 use alga::general::SubsetOf;
 use nalgebra::{UnitQuaternion, Vector3};
 
-use knot::continuous_optimize::{Chain, Leg, PhantomJoint, RepulsionChain};
+use knot::optimize_tools::{Chain, Leg, PhantomJoint, RepulsionChain};
 use knot::defaults::continuous_optimization::{
     COST_PARAMS, CURVE_9_40_CHAIN_SIZE, MAX_REPULSION_STRENGTH, RATE, REPULSION,
     REPULSION_EXPONENT, REPULSION_STRENGTH, RETURN_TO_INITIAL, RETURN_TO_INITIAL_WEIGHT, STEPS,
