@@ -44,7 +44,7 @@ impl simulated_annealing for RepulsionChain {
     const steps: i32 = 100;
 
     pub fn simple_cooling_schedule(step: f64, cost_diff: f64) -> f64 {
-        std::f64::consts::E.powf(cost_diff/step)
+        std::f64::consts::E.powf(0.1*cost_diff*step)
     }
     pub fn simul_anneal(&mut self, ratios: &[f64], tolerance: f64,
         repulsion: bool, return_to_initial: bool) -> f64 {
