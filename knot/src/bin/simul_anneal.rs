@@ -25,15 +25,15 @@ use knot::report::{JointsParity, KnotGeometry, Transform};
 use knot::symmetry::{symmetries, symmetries_with_skip};
 
 const TAU: f64 = 2.0 * PI;
-const TWO_WEIGHT = 0.5;
-const EPOCHS: u32 = 1000;
+const TWO_WEIGHT: f64 = 0.5;
+const EPOCHS: i32 = 1000;
 
 // Adjust the constant value as needed!
-fn simple_cooling_schedule(epoch: f64, cost_diff: f64) -> bool {
-    if cost_diff > 0 {
+fn simple_cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
+    if cost_diff > 0.0 {
         true
     } else {
-        if rand::random::<f64>() < std::f64::consts::E.powf(cost_diff*epoch*50/EPOCHS) {
+        if rand::random::<f64>() < std::f64::consts::E.powf(cost_diff*(epoch as f64)*(50.0)/(EPOCHS as f64)) {
             true
         } else {
             false
@@ -59,7 +59,7 @@ fn optimize(chain: &mut RepulsionChain, steps: u32) -> f64 {
 }
 
 fn main() {
-    let (mut best_chain, symms, parity) = match args().nth(1) {
+    let (mut curr_chain, symms, parity) = match args().nth(1) {
         Some(filename) => {
             let file = File::open(&filename).unwrap_or_else(|_| {
                 eprintln!("Could not open file {}", filename);
@@ -128,55 +128,59 @@ fn main() {
             JointsParity::Even,
         ),
     };
-    let mut best_cost = optimize(&mut best_chain, STEPS);
-    eprintln!("Original cost: {}", best_cost);
+    let mut curr_cost = optimize(&mut curr_chain, STEPS);
+    eprintln!("Original cost: {}", curr_cost);
 
-    let mut steps = Vec::new();
+    let mut steps: Vec<(usize, f64)> = Vec::new();
 
     for epoch in 0..EPOCHS {
 
-        eprintln!("Best cost by epoch {}: {}", epoch, best_cost);
+        eprintln!("Best cost by epoch {}: {}", epoch, curr_cost);
 
         let x: u8 = rand::random();
-        let angle = if rand::random() {
+        let mut angle = if rand::random() {
             TAU / 16.0
         } else {
-            -1 * TAU / 16
-        }
+            -1.0 * TAU / 16.0
+        };
 
-        let mut offset_chain = best_chain.clone();
+        let mut offset_chain = curr_chain.clone();
+
+        let rand_joint: usize;
+
         if rand::random::<f64>() > TWO_WEIGHT {
-            let rand_joint = x % best_chain.joints.len() - 2;
+            rand_joint = (x as usize) % (curr_chain.joints.len() - 2);
             if rand_joint == 0 {
                 angle = angle * 0.5;
             }
-            offset_chain.joints[rand_joint] =
-                offset_chain.joints[rand_joint]
+            offset_chain.joints[(rand_joint as usize)] =
+                offset_chain.joints[(rand_joint as usize)]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
-            offset_chain.joints[rand_joint + 1] =
-                offset_chain.joints[rand_joint]
-                    * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -2 * angle);
-            offset_chain.joints[rand_joint + 2] =
-                offset_chain.joints[rand_joint]
+            offset_chain.joints[((rand_joint + 1) as usize)] =
+                offset_chain.joints[(rand_joint as usize)]
+                    * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -2.0 * angle);
+            offset_chain.joints[((rand_joint + 2) as usize)] =
+                offset_chain.joints[(rand_joint as usize)]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
         } else {
-            let rand_joint = x % best_chain.joints.len() - 1;
+            rand_joint = x as usize % (curr_chain.joints.len() - 1);
             if rand_joint == 0 {
                 angle = angle * 0.5;
             }
-            offset_chain.joints[rand_joint] =
-                offset_chain.joints[rand_joint]
+            offset_chain.joints[(rand_joint as usize)] =
+                offset_chain.joints[(rand_joint as usize)]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
-            offset_chain.joints[rand_joint + 1] =
-                offset_chain.joints[rand_joint]
-                    * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -1 * angle);
+            offset_chain.joints[((rand_joint + 1) as usize)] =
+                offset_chain.joints[(rand_joint as usize)]
+                    * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -1.0 * angle);
         }
 
         let cost = optimize(&mut offset_chain, STEPS);
-        let cost_diff = best_cost - cost;
+        let cost_diff = curr_cost - cost;
         if simple_cooling_schedule(epoch, cost_diff) {
-            best_chain = Some((offset_chain, i, offset));
-            best_cost = cost;
+            curr_chain = offset_chain;
+            curr_cost = cost;
+            steps.push((rand_joint, (angle * 16.0 / TAU)));
             eprintln!("Changed!");
             eprintln!("{} {:+} : {} {:+}", rand_joint, angle, cost, cost_diff);
         } else {
@@ -189,7 +193,7 @@ fn main() {
         eprintln!("{} {:+}", i, offset);
     }
 
-    let transforms = best_chain
+    let transforms = curr_chain
         .joints
         .iter()
         .cloned()
@@ -197,9 +201,9 @@ fn main() {
         .collect::<Vec<_>>();
 
     let geometry = KnotGeometry {
-        joint_spec: best_chain.spec,
-        num_angles: best_chain.num_angles,
-        cost_params: best_chain.cost_params,
+        joint_spec: curr_chain.spec,
+        num_angles: curr_chain.num_angles,
+        cost_params: curr_chain.cost_params,
         parity: parity,
         symmetries: symms,
         transforms,
@@ -207,4 +211,5 @@ fn main() {
 
     eprintln!("\nFinal geometry:");
     println!("{}", serde_json::to_string_pretty(&geometry).unwrap());
+    }
 }
