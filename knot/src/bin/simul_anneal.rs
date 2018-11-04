@@ -153,25 +153,25 @@ fn main() {
             if rand_joint == 0 {
                 angle = angle * 0.5;
             }
-            offset_chain.joints[(rand_joint as usize)] =
-                offset_chain.joints[(rand_joint as usize)]
+            offset_chain.joints[rand_joint] =
+                offset_chain.joints[rand_joint]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
-            offset_chain.joints[((rand_joint + 1) as usize)] =
-                offset_chain.joints[(rand_joint as usize)]
+            offset_chain.joints[rand_joint + 1] =
+                offset_chain.joints[rand_joint]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -2.0 * angle);
-            offset_chain.joints[((rand_joint + 2) as usize)] =
-                offset_chain.joints[(rand_joint as usize)]
+            offset_chain.joints[rand_joint + 2] =
+                offset_chain.joints[rand_joint]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
         } else {
             rand_joint = x as usize % (curr_chain.joints.len() - 1);
             if rand_joint == 0 {
                 angle = angle * 0.5;
             }
-            offset_chain.joints[(rand_joint as usize)] =
-                offset_chain.joints[(rand_joint as usize)]
+            offset_chain.joints[rand_joint] =
+                offset_chain.joints[rand_joint]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
-            offset_chain.joints[((rand_joint + 1) as usize)] =
-                offset_chain.joints[(rand_joint as usize)]
+            offset_chain.joints[rand_joint + 1] =
+                offset_chain.joints[rand_joint]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -1.0 * angle);
         }
 
