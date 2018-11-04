@@ -29,7 +29,7 @@ const TWO_WEIGHT: f64 = 0.5;
 const EPOCHS: i32 = 1000;
 
 // Adjust the constant value as needed!
-fn simple_cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
+fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
     if cost_diff > 0.0 {
         true
     } else {
@@ -135,8 +135,6 @@ fn main() {
 
     for epoch in 0..EPOCHS {
 
-        eprintln!("Best cost by epoch {}: {}", epoch, curr_cost);
-
         let x: u8 = rand::random();
         let mut angle = if rand::random() {
             TAU / 16.0
@@ -177,16 +175,18 @@ fn main() {
 
         let cost = optimize(&mut offset_chain, STEPS);
         let cost_diff = curr_cost - cost;
-        if simple_cooling_schedule(epoch, cost_diff) {
+        if cooling_schedule(epoch, cost_diff) {
             curr_chain = offset_chain;
             curr_cost = cost;
             steps.push((rand_joint, (angle * 16.0 / TAU)));
             eprintln!("Changed!");
-            eprintln!("{} {:+} : {} {:+}", rand_joint, angle, cost, cost_diff);
+            eprintln!("{} {:+} : {} {:+}", rand_joint, (angle * 16.0 / TAU), cost, cost_diff);
         } else {
             eprintln!("Unchanged!");
-            eprintln!("{} {:+} : {} {:+}", rand_joint, angle, cost, cost_diff);
+            eprintln!("{} {:+} : {} {:+}", rand_joint, (angle * 16.0 / TAU), cost, cost_diff);
         }
+        eprintln!("Cost after epoch {}: {}", epoch, curr_cost);
+    }
 
     eprintln!("\nFinal steps:");
     for &(i, offset) in &steps {
@@ -211,5 +211,5 @@ fn main() {
 
     eprintln!("\nFinal geometry:");
     println!("{}", serde_json::to_string_pretty(&geometry).unwrap());
-    }
+
 }
