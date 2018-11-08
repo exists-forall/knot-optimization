@@ -33,7 +33,7 @@ fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
     if cost_diff > 0.0 {
         true
     } else {
-        if rand::random::<f64>() < std::f64::consts::E.powf(cost_diff*(epoch as f64)*(50.0)/(EPOCHS as f64)) {
+        if rand::random::<f64>() < std::f64::consts::E.powf(cost_diff*(epoch as f64)* (50.0) / (EPOCHS as f64)) {
             true
         } else {
             false
@@ -133,6 +133,10 @@ fn main() {
 
     let mut steps: Vec<(usize, f64)> = Vec::new();
 
+    let mut change: [i32; 4] = [0, 0, 0, 0];
+    let mut best_cost = curr_cost;
+    let mut best_epoch = 0;
+
     for epoch in 0..EPOCHS {
 
         let x: u8 = rand::random();
@@ -178,7 +182,17 @@ fn main() {
         if cooling_schedule(epoch, cost_diff) {
             curr_chain = offset_chain;
             curr_cost = cost;
+            if best_cost > curr_cost {
+                best_cost = curr_cost;
+                best_epoch = epoch;
+            }
             steps.push((rand_joint, (angle * 16.0 / TAU)));
+            if epoch < EPOCHS / 4 {
+                change[0] += 1;
+            } else {
+                let q: usize = ((EPOCHS as f64)/(epoch as f64)).floor() as usize;
+                change[q] = change[q] + 1;
+            }
             eprintln!("Changed!");
             eprintln!("{} {:+} : {} {:+}", rand_joint, (angle * 16.0 / TAU), cost, cost_diff);
         } else {
@@ -211,5 +225,11 @@ fn main() {
 
     eprintln!("\nFinal geometry:");
     println!("{}", serde_json::to_string_pretty(&geometry).unwrap());
+
+    eprintln!("\nChanges per Quarter of Total Steps");
+    println!("{:?}", change);
+
+    eprintln!("\nFinal Cost, Best Found Cost");
+    eprintln!("{}, {} at epoch {}", curr_cost, best_cost, best_epoch);
 
 }
