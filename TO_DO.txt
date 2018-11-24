@@ -1,0 +1,32 @@
+- Tune simulated annealing's probability function!
+  - Probability slider?
+  - Probably want a piecewise probability function rather than a continuous one
+    - Conditional cooling?
+    - Want a function that becomes closer to 0 towards the end, but takes longer to get there
+  - Implement an easier way to choose probability function
+  - Statistics for probability functions!
+    - How often changes occur in each quarter
+    - When best occurs, and whether the process ends on the best possible
+    - Distance between theoretical best and best of simulation
+    - Distribution of best knots
+
+- Other potential changes to be made to simulated annealing
+  - Manually return to previously best found solution
+  - If no steps accepted in 100 moves, automatically ...
+  - Develop visualizer.
+    - What would this visualizer even do? We don't want to see the knot...
+      - real-time data on the statistics that I want to output
+        - true acceptance probability of given knot
+        - probability that bad move is accepted
+        - frequency of change
+
+
+- Determine the structure of the whatever we're optimizing over!
+  - List of 20 best knots, and their parities (there are 16 of them)
+  - List of 10 best knots of each parity, and their distances in terms of number of moves removed from one another
+  - Try to find a move that changes parity without being absurd. Otherwise, find a way to overcome the parity problem
+    - Allow one step moves?
+      - Why would this even help if we don't know which parity would be best?
+
+- Begin tech report
+  - Talk about this in meeting first

@@ -28,7 +28,7 @@ const TAU: f64 = 2.0 * PI;
 const TWO_WEIGHT: f64 = 0.5;
 const EPOCHS: i32 = 1000;
 
-/* Adjust the constant value as needed!
+// Adjust the constant value as needed!
 fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
     if cost_diff > 0.0 {
         true
@@ -40,20 +40,6 @@ fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
         }
     }
 
-}
-*/
-fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
-    if cost_diff > 0.0 {
-        true
-    } else {
-        let prob : f64;
-        let q: f64 = ((10.0 * (epoch as f64))/(EPOCHS as f64)).floor() / 10.0;
-        if rand::random::<f64>() < prob {
-            true
-        } else {
-            false
-        }
-    }
 }
 
 fn optimize(chain: &mut RepulsionChain, steps: u32) -> f64 {
