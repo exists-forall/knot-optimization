@@ -52,7 +52,8 @@ const NUM_JOINTS: u32 = 5;
 
 const WINDING_ANGLE_TOLERANCE: f64 = 0.1;
 
-const KEEP_COUNT: usize = 1;
+const KEEP_COUNT: usize = 100;
+
 
 #[derive(Clone, Copy)]
 struct Knot {
@@ -237,6 +238,7 @@ fn generate_reports(
         .map(|knot| KnotReport {
             angles: knot.angles.iter().map(|&angle| angle as i32).collect(),
             final_angle: Some(knot.final_angle),
+            angle_parity: (knot.angles.iter().map(|&angle| angle as i32).sum::<i32>() + (knot.final_angle.round() as i32)) % 16,
             symmetry_adjust: Some(knot.symmetry_adjust),
             costs: Some(knot.costs),
         }).collect();
@@ -348,6 +350,7 @@ fn main() {
         skip,
         parity,
     );
+
     println!(
         "Serializing best {} knots to {}",
         reports.knots.len(),

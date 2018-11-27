@@ -12,6 +12,7 @@ use symmetry_adjust::{self, Problem};
 pub struct KnotReport {
     pub angles: Vec<i32>,
     pub final_angle: Option<f64>,
+    pub angle_parity: i32,
     pub symmetry_adjust: Option<symmetry_adjust::Vars>,
     pub costs: Option<Costs>,
 }
