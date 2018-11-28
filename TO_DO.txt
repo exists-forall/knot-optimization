@@ -9,6 +9,9 @@
     - When best occurs, and whether the process ends on the best possible
     - Distance between theoretical best and best of simulation
     - Distribution of best knots
+  - How do we switch between each of the 16 parities?
+    - Consider taking 1-moves at random times in the process
+      -
 
 - Other potential changes to be made to simulated annealing
   - Manually return to previously best found solution
@@ -27,6 +30,9 @@
   - Try to find a move that changes parity without being absurd. Otherwise, find a way to overcome the parity problem
     - Allow one step moves?
       - Why would this even help if we don't know which parity would be best?
+  - Start thinking about non-trefoil knot!
+
+- Implement cost function for starting parity!
 
 - Begin tech report
   - Talk about this in meeting first
