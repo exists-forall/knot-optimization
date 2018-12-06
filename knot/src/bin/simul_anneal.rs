@@ -47,7 +47,7 @@ fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
         true
     } else {
         let prob : f64;
-        let q: f64 = ((10.0 * (epoch as f64))/(EPOCHS as f64)).floor() / 10.0;
+        prob = ((10.0 * (epoch as f64))/(EPOCHS as f64)).floor() / 10.0;
         if rand::random::<f64>() < prob {
             true
         } else {
