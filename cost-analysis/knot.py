@@ -7,6 +7,7 @@ class Knot:
         self.angles = angles
         self.cost = cost
         self.parity = parity
+        self.adjacent = []
 
 
 # Set of knots with some functionality for identifying other knots.
@@ -38,18 +39,28 @@ class KnotSet:
                 else:
                     new_angles[i+1] = (new_angles[i+1] - shift) % self.total_parity
 
-                found = False
-                for parity_match in self.knots[knot.parity]:
-                    if parity_match.angles == new_angles:
-                        adj_knots.append(parity_match)
-                        found = True
+                match = self.retrieve_from_angles(new_angles, knot.parity)
 
-                if not found:
+                if not match:
                     bad_knot = Knot(new_angles, 3, knot.parity)
                     adj_knots.append(bad_knot)
+                else:
+                    adj_knots.append(match)
 
+        knot.adjacent = adj_knots
         return adj_knots
 
+    def retrieve_from_angles(self, angle_set, parity):
+        for candidate in self.knots[parity]:
+            if candidate.angles == angle_set:
+                return candidate
+        return []
+
+    def one_d_knot_list(self):
+        knot_list = []
+        for subset in self.knots:
+            knot_list.extend(subset)
+        return knot_list
 
 # Returns the number of moves required to convert one knot to another knot.
 # Requires the two knots to be of the same parity.
