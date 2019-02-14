@@ -30,22 +30,23 @@ class KnotSet:
     def adjacent_knots(self, knot):
         adj_knots = []
         for i in range(len(knot.angles)):
-            new_angles = knot.angles.copy()
-            new_angles[i] = (new_angles[i] + 1) % self.total_parity
-            if i + 1 == len(knot.angles):
-                new_angles[0] = (new_angles[0] - 1) % self.total_parity
-            else:
-                new_angles[i+1] = (new_angles[i+1] - 1) % self.total_parity
+            for shift in [1, -1]:
+                new_angles = knot.angles.copy()
+                new_angles[i] = (new_angles[i] + shift) % self.total_parity
+                if i + 1 == len(knot.angles):
+                    new_angles[0] = (new_angles[0] - shift) % self.total_parity
+                else:
+                    new_angles[i+1] = (new_angles[i+1] - shift) % self.total_parity
 
-            found = False
-            for parity_match in self.knots[knot.parity]:
-                if parity_match.angles == new_angles:
-                    adj_knots.append(parity_match)
-                    found = True
+                found = False
+                for parity_match in self.knots[knot.parity]:
+                    if parity_match.angles == new_angles:
+                        adj_knots.append(parity_match)
+                        found = True
 
-            if not found:
-                bad_knot = Knot(new_angles, 3, knot.parity)
-                adj_knots.append(bad_knot)
+                if not found:
+                    bad_knot = Knot(new_angles, 3, knot.parity)
+                    adj_knots.append(bad_knot)
 
         return adj_knots
 
