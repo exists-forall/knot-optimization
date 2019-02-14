@@ -52,7 +52,7 @@ const NUM_JOINTS: u32 = 5;
 
 const WINDING_ANGLE_TOLERANCE: f64 = 0.1;
 
-const KEEP_COUNT: usize = 100;
+const KEEP_COUNT: usize = 4286;
 
 
 #[derive(Clone, Copy)]
@@ -238,9 +238,11 @@ fn generate_reports(
         .map(|knot| KnotReport {
             angles: knot.angles.iter().map(|&angle| angle as i32).collect(),
             final_angle: Some(knot.final_angle),
-            angle_parity: (knot.angles.iter().map(|&angle| angle as i32).sum::<i32>() + (knot.final_angle.round() as i32)) % 16,
+            angle_parity: (knot.angles.iter().map(|&angle| angle as i32).sum::<i32>()
+                + (knot.final_angle.round() as i32)) % 16,
             symmetry_adjust: Some(knot.symmetry_adjust),
             costs: Some(knot.costs),
+            total_cost: knot.cost,
         }).collect();
 
     KnotReports {

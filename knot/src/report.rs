@@ -15,6 +15,7 @@ pub struct KnotReport {
     pub angle_parity: i32,
     pub symmetry_adjust: Option<symmetry_adjust::Vars>,
     pub costs: Option<Costs>,
+    pub total_cost: f64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
