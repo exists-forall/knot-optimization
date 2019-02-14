@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9a4553c9-3a3e-402e-9d7e-29e02aebc72b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cost-analysis/knot.py" beforeDir="false" afterPath="$PROJECT_DIR$/cost-analysis/knot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cost-analysis/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/cost-analysis/test.py" afterDir="false" />
-    </list>
+    <list default="true" id="9a4553c9-3a3e-402e-9d7e-29e02aebc72b" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,7 +13,7 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/cost-analysis/knot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="181">
+            <state relative-caret-position="-40">
               <caret line="34" column="32" selection-start-line="34" selection-start-column="32" selection-end-line="34" selection-end-column="32" />
             </state>
           </provider>
@@ -157,16 +153,15 @@
       <option name="presentableId" value="Default" />
       <updated>1550128864182</updated>
       <workItem from="1550128868532" duration="202000" />
-      <workItem from="1550130602019" duration="3916000" />
+      <workItem from="1550130602019" duration="3960000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="4118000" />
+    <option name="totallyTimeSpent" value="4162000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="878" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22818792" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -215,7 +210,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/cost-analysis/knot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="181">
+        <state relative-caret-position="-40">
           <caret line="34" column="32" selection-start-line="34" selection-start-column="32" selection-end-line="34" selection-end-column="32" />
         </state>
       </provider>
