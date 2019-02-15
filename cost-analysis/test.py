@@ -1,13 +1,21 @@
 import knot
 
 
-def knot_retrieval():
+def test_knot_retrieval():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     good_set = knot.KnotSet("trefoil_statistics/top_100.json")
 
     best_knot = good_set.knots[10][0]
     equivalent = full_set.retrieve_from_angles(best_knot.angles, best_knot.parity)
     print(equivalent.angles)
+
+
+def adjacent_costs():
+    full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
+    start_knot = full_set.knots[10][0]
+    adjacents = full_set.adjacent_knots(start_knot)
+    for adj_knot in adjacents:
+        print(adj_knot.angles, adj_knot.cost)
 
 
 def good_adjacency_sizes():
@@ -30,4 +38,5 @@ def good_adjacency_sizes():
     print(sum(good_adjacencies)/len(good_adjacencies))
 
 
-good_adjacency_sizes()
+adjacent_costs()
+

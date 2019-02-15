@@ -1,4 +1,6 @@
 import json
+# Find dimensional reduction packages!
+# Consider an adaptive move-set with more drastic moves!
 
 
 # The fundamental knot object.
@@ -61,6 +63,7 @@ class KnotSet:
         for subset in self.knots:
             knot_list.extend(subset)
         return knot_list
+
 
 # Returns the number of moves required to convert one knot to another knot.
 # Requires the two knots to be of the same parity.
