@@ -63,9 +63,3 @@ class KnotSet:
         for subset in self.knots:
             knot_list.extend(subset)
         return knot_list
-
-
-# Returns the number of moves required to convert one knot to another knot.
-# Requires the two knots to be of the same parity.
-def distance(knot1, knot2):
-    pass
