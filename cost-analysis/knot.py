@@ -5,11 +5,12 @@ import json
 
 # The fundamental knot object.
 class Knot:
-    def __init__(self, angles, cost, parity):
+    def __init__(self, angles, cost, parity, ranking):
         self.angles = angles
         self.cost = cost
         self.parity = parity
         self.adjacent = []
+        self.ranking = ranking
 
 
 # Set of knots with some functionality for identifying other knots.
@@ -26,7 +27,7 @@ class KnotSet:
         for knot in data["knots"]:
             temp_angles = knot["angles"]
             temp_angles.append(round(knot["final_angle"]))
-            temp_knot = Knot(knot["angles"], knot["total_cost"], knot["angle_parity"])
+            temp_knot = Knot(knot["angles"], knot["total_cost"], knot["angle_parity"], len(self.knots[temp_knot.parity])+1)
             self.knots[temp_knot.parity].append(temp_knot)
 
     # Returns a list of knot objects exactly one "move" away from current knot.
@@ -44,7 +45,7 @@ class KnotSet:
                 match = self.retrieve_from_angles(new_angles, knot.parity)
 
                 if not match:
-                    bad_knot = Knot(new_angles, 3, knot.parity)
+                    bad_knot = Knot(new_angles, 3, knot.parity, -1)
                     adj_knots.append(bad_knot)
                 else:
                     adj_knots.append(match)

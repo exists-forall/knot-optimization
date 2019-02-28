@@ -1,4 +1,5 @@
 import knot
+import grapher
 
 
 def test_knot_retrieval():
@@ -38,5 +39,9 @@ def good_adjacency_sizes():
     print(sum(good_adjacencies)/len(good_adjacencies))
 
 
-adjacent_costs()
+def knot_plot_test():
+    full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
+    good_set = knot.KnotSet("trefoil_statistics/top_100.json")
+    start_knot = full_set.knots[10][0]
 
+    adjacent_graph(full_set, start_knot, "test_start")
