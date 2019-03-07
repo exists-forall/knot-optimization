@@ -49,7 +49,7 @@ def knot_plot_test():
 def graph_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     start_knot = full_set.knots[10][0]
-    adjacent_graph(full_set, start_knot, "graph.txt")
+    adjacent_graph(full_set, start_knot, "Adjacent to best.")
 
 
 graph_test()

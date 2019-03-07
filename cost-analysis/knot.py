@@ -53,6 +53,7 @@ class KnotSet:
         knot.adjacent = adj_knots
         return adj_knots
 
+
     def retrieve_from_angles(self, angle_set, parity):
         for candidate in self.knots[parity]:
             if candidate.angles == angle_set:

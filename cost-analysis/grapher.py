@@ -14,7 +14,6 @@ def node_gen(knot):
 def adjacent_graph(knotset, knot, name):
     adj_knots = knotset.adjacent_knots(knot)
 
-
     # Generate a list of edges, and make a graph based on those edges.
     edges = [(0, i) for i in range(1, len(adj_knots) + 1)]
     G = ig.Graph(edges, directed=False)
@@ -42,17 +41,17 @@ def adjacent_graph(knotset, knot, name):
     y_edges = []
     z_edges = []
     # Set coordinates for edges in graph.
+
     for edge in edges:
-        x_edges += [[x_coords[edge[0]], x_coords[edge[1]]]]
-        y_edges += [[y_coords[edge[0]], y_coords[edge[1]]]]
-        z_edges += [[z_coords[edge[0]], z_coords[edge[1]]]]
+        x_edges += [x_coords[edge[0]], x_coords[edge[1]], None]
+        y_edges += [y_coords[edge[0]], y_coords[edge[1]], None]
+        z_edges += [z_coords[edge[0]], z_coords[edge[1]], None]
 
     trace1 = go.Scatter3d(x=x_edges,
                           y=y_edges,
                           z=z_edges,
                           mode='lines',
-                          line=dict(color='rgb(125,125,125)', width=1),
-                          hoverinfo='none'
+                          hoverinfo='z'
                           )
 
     trace2 = go.Scatter3d(x=x_coords,
@@ -102,6 +101,8 @@ def adjacent_graph(knotset, knot, name):
     )
 
     data = [trace1, trace2]
-    fig = go.Figure(data=data, layout=layout)
+    fig = go.Figure(data = data, layout=layout)
 
-    py.iplot(fig, filename=name)
+    py.plot(fig, filename=name)
+
+def adjacent_to_n_graph(, knot, n, name):
