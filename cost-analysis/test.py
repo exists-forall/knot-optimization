@@ -1,5 +1,5 @@
 import knot
-from grapher import adjacent_graph
+import grapher
 
 
 def test_knot_retrieval():
@@ -9,6 +9,7 @@ def test_knot_retrieval():
     best_knot = good_set.knots[10][0]
     equivalent = full_set.retrieve_from_angles(best_knot.angles, best_knot.parity)
     print(equivalent.angles)
+
 
 
 def adjacent_costs():
@@ -42,14 +43,13 @@ def good_adjacency_sizes():
 def knot_plot_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     start_knot = full_set.knots[10][0]
-
-    adjacent_graph(full_set, start_knot, "test_start")
+    grapher.adjacent_graph(full_set, start_knot, "test_start")
 
 
 def graph_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     start_knot = full_set.knots[10][0]
-    adjacent_graph(full_set, start_knot, "Adjacent to best.")
+    grapher.n_adjacent_graph(full_set, start_knot, "2-adjacent to best.", 2)
 
 
 graph_test()

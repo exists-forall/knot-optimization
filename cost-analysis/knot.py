@@ -12,7 +12,20 @@ class Knot:
         self.adjacent = []
         self.ranking = ranking
 
+    # Requires that adjacent_knots has been run on the knot.
+    def is_adjacent(self, other_knot):
+        candidate_angles = other_knot.angles
+        for possibility in self.adjacent:
+            if candidate_angles == possibility.angles:
+                return True
+        return False
 
+    # Determines whether a knot is in a set.
+    def in_set(self, set):
+        for current in set:
+            if current.angles == self.angles:
+                return True
+        return False
 # Set of knots with some functionality for identifying other knots.
 class KnotSet:
     def __init__(self, json_file = None):
@@ -59,11 +72,14 @@ class KnotSet:
         return adj_knots
 
 
-    def retrieve_from_angles(self, angle_set, parity):
+    def retrieve_from_angles(self, angle_set, parity = -1):
+        if parity == -1:
+            parity = sum(angle_set) % 16
         for candidate in self.knots[parity]:
             if candidate.angles == angle_set:
                 return candidate
         return []
+
 
     def one_d_knot_list(self):
         knot_list = []
