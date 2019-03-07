@@ -15,20 +15,25 @@ class Knot:
 
 # Set of knots with some functionality for identifying other knots.
 class KnotSet:
-    def __init__(self, json_file):
-        # Matrix with knots sorted by parity.
-        with open(json_file) as f:
-            data = json.load(f)
+    def __init__(self, json_file = None):
+        if not json_file:
+            self.total_parity = 16
+            self.knots = [[] for _ in range(self.total_parity)]
+        else:
+            # Matrix with knots sorted by parity.
+            with open(json_file) as f:
+                data = json.load(f)
 
-        self.total_parity = data["num_angles"]
+            self.total_parity = data["num_angles"]
 
-        self.knots = [[] for _ in range(self.total_parity)]
+            self.knots = [[] for _ in range(self.total_parity)]
 
-        for knot in data["knots"]:
-            temp_angles = knot["angles"]
-            temp_angles.append(round(knot["final_angle"]))
-            temp_knot = Knot(knot["angles"], knot["total_cost"], knot["angle_parity"], len(self.knots[knot["angle_parity"]])+1)
-            self.knots[temp_knot.parity].append(temp_knot)
+            for knot in data["knots"]:
+                temp_angles = knot["angles"]
+                temp_angles.append(round(knot["final_angle"]))
+                temp_knot = Knot(knot["angles"], knot["total_cost"], knot["angle_parity"], len(self.knots[knot["angle_parity"]])+1)
+                self.knots[temp_knot.parity].append(temp_knot)
+
 
     # Returns a list of knot objects exactly one "move" away from current knot.
     def adjacent_knots(self, knot):
