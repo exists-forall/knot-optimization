@@ -27,7 +27,7 @@ class KnotSet:
         for knot in data["knots"]:
             temp_angles = knot["angles"]
             temp_angles.append(round(knot["final_angle"]))
-            temp_knot = Knot(knot["angles"], knot["total_cost"], knot["angle_parity"], len(self.knots[temp_knot.parity])+1)
+            temp_knot = Knot(knot["angles"], knot["total_cost"], knot["angle_parity"], len(self.knots[knot["angle_parity"]])+1)
             self.knots[temp_knot.parity].append(temp_knot)
 
     # Returns a list of knot objects exactly one "move" away from current knot.

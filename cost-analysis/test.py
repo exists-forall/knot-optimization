@@ -44,3 +44,12 @@ def knot_plot_test():
     start_knot = full_set.knots[10][0]
 
     adjacent_graph(full_set, start_knot, "test_start")
+
+
+def graph_test():
+    full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
+    start_knot = full_set.knots[10][0]
+    adjacent_graph(full_set, start_knot, "graph.txt")
+
+
+graph_test()
