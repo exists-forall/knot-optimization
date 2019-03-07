@@ -18,7 +18,7 @@ def node_gen(knot):
 # name: file name
 # title: title of graph
 # and graphs the graph with plotly.
-def graph_from_data(nodes, edges, name, title):
+def graph_from_data(nodes, edges, name, title, good_only = False):
 
     # Generate an iGraph from the edges, and spread it out accordingly.
     G = ig.Graph(edges, directed=False)
@@ -32,6 +32,12 @@ def graph_from_data(nodes, edges, name, title):
         rankings.append(node["ranking"])
         costs.append(node["cost"])
 
+    # If good_only, then only add good nodes/edges to graph.
+    if good_only:
+        good_indices = [i for i in range(len(nodes)) if nodes[i]["cost"] < 3]
+        good_nodes = [nodes[i] for i in good_indices]
+        good_edges = [edge for edge in edges if ((edge[0] in good_indices) and (edge[1] in good_indices))]
+
     # Set coordinates for nodes in graph.
     x_coords = [layout[k][0] for k in range(N)]
     y_coords = [layout[k][1] for k in range(N)]
@@ -40,8 +46,8 @@ def graph_from_data(nodes, edges, name, title):
     x_edges = []
     y_edges = []
     z_edges = []
-    # Set coordinates for edges in graph.
 
+    # Set coordinates for edges in graph.
     for edge in edges:
         x_edges += [x_coords[edge[0]], x_coords[edge[1]], None]
         y_edges += [y_coords[edge[0]], y_coords[edge[1]], None]
