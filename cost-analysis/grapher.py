@@ -18,12 +18,11 @@ def node_gen(knot):
 # name: file name
 # title: title of graph
 # and graphs the graph with plotly.
-def graph_from_data(nodes, edges, name, title, good_only = False):
+def graph_from_data(nodes, edges, name, title, good_only):
 
     # Generate an iGraph from the edges, and spread it out accordingly.
     G = ig.Graph(edges, directed=False)
     layout = G.layout('kk', dim=2)
-
 
     N = len(nodes)
     rankings = []
@@ -32,16 +31,17 @@ def graph_from_data(nodes, edges, name, title, good_only = False):
         rankings.append(node["ranking"])
         costs.append(node["cost"])
 
+    indices = range(N)
     # If good_only, then only add good nodes/edges to graph.
     if good_only:
-        good_indices = [i for i in range(len(nodes)) if nodes[i]["cost"] < 3]
-        good_nodes = [nodes[i] for i in good_indices]
-        good_edges = [edge for edge in edges if ((edge[0] in good_indices) and (edge[1] in good_indices))]
+        indices = [i for i in indices if nodes[i]["cost"] < 3]
+        nodes = [nodes[i] for i in indices]
+        edges = [edge for edge in edges if ((edge[0] in indices) and (edge[1] in indices))]
 
     # Set coordinates for nodes in graph.
-    x_coords = [layout[k][0] for k in range(N)]
-    y_coords = [layout[k][1] for k in range(N)]
-    z_coords = costs
+    x_coords = [layout[k][0] for k in indices]
+    y_coords = [layout[k][1] for k in indices]
+    z_coords = [costs[k] for k in indices]
 
     x_edges = []
     y_edges = []
@@ -49,9 +49,9 @@ def graph_from_data(nodes, edges, name, title, good_only = False):
 
     # Set coordinates for edges in graph.
     for edge in edges:
-        x_edges += [x_coords[edge[0]], x_coords[edge[1]], None]
-        y_edges += [y_coords[edge[0]], y_coords[edge[1]], None]
-        z_edges += [z_coords[edge[0]], z_coords[edge[1]], None]
+        x_edges += [layout[edge[0]][0], layout[edge[1]][0], None]
+        y_edges += [layout[edge[0]][1], layout[edge[1]][1], None]
+        z_edges += [costs[edge[0]], costs[edge[1]], None]
 
     trace1 = go.Scatter3d(x=x_edges,
                           y=y_edges,
@@ -70,7 +70,7 @@ def graph_from_data(nodes, edges, name, title, good_only = False):
                                       colorscale='Viridis',
                                       line=dict(color='rgb(50,50,50)', width=0.5)
                                       ),
-                          text=costs,
+                          text=z_coords,
                           hoverinfo='text'
                           )
 
@@ -113,7 +113,7 @@ def graph_from_data(nodes, edges, name, title, good_only = False):
 
 
 # Graph adjacent to one knot.
-def adjacent_graph(knotset, knot, name):
+def adjacent_graph(knotset, knot, name, good_only = False):
     adj_knots = knotset.adjacent_knots(knot)
 
     # Generate a list of edges, and make a graph based on those edges.
@@ -124,11 +124,11 @@ def adjacent_graph(knotset, knot, name):
     for adj_knot in adj_knots:
         nodes.append(node_gen(adj_knot))
 
-    graph_from_data(nodes, edges, name, "Adjacent to best.")
+    graph_from_data(nodes, edges, name, "Adjacent to best.", good_only)
 
 
 # Graph of vertices n away from q knot.
-def n_adjacent_graph(knotset, knot, name, n):
+def n_adjacent_graph(knotset, knot, name, n, good_only = False):
     if n == 0:
         nodes = [node_gen(knot)]
         graph_from_data(nodes, [], name, "Single node.")
@@ -172,4 +172,4 @@ def n_adjacent_graph(knotset, knot, name, n):
 
         nodes = [node_gen(knot) for knot in all_knots]
 
-        graph_from_data(nodes, edges, name, graph_name)
+        graph_from_data(nodes, edges, name, graph_name, good_only)

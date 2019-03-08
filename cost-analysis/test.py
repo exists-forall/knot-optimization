@@ -49,7 +49,11 @@ def knot_plot_test():
 def graph_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     start_knot = full_set.knots[10][0]
-    grapher.n_adjacent_graph(full_set, start_knot, "2-adjacent to best.", 2)
+    grapher.n_adjacent_graph(full_set, start_knot, "2-adjacent to best.", 3)
 
+def good_graph_test():
+    full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
+    start_knot = full_set.knots[10][0]
+    grapher.n_adjacent_graph(full_set, start_knot, "4-adjacent to best.", 4, True)
 
-graph_test()
+good_graph_test()
