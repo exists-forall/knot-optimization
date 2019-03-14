@@ -3,6 +3,13 @@ import plotly.graph_objs as go
 import plotly.plotly as py
 
 
+class GraphSpec:
+    def __init__(self, nodes, edges, good_only):
+        self.nodes = nodes
+        self.edges = edges
+        self.good_only = good_only
+
+
 def node_gen(knot):
     node = {
         "ranking": knot.ranking,
@@ -18,7 +25,10 @@ def node_gen(knot):
 # name: file name
 # title: title of graph
 # and graphs the graph with plotly.
-def graph_from_data(nodes, edges, name, title, good_only):
+def graph_from_data(spec, file_name, title):
+    nodes = spec.nodes
+    edges = spec.edges
+    good_only = spec.good_only
 
     # Generate an iGraph from the edges, and spread it out accordingly.
     G = ig.Graph(edges, directed=False)
@@ -109,11 +119,11 @@ def graph_from_data(nodes, edges, name, title, good_only):
     data = [trace1, trace2]
     fig = go.Figure(data = data, layout=layout)
 
-    py.plot(fig, filename=name)
+    py.plot(fig, filename=file_name)
 
 
-# Graph adjacent to one knot.
-def adjacent_graph(knotset, knot, name, good_only = False):
+# Returns the spec for a graph adjacent to one knot.
+def adjacent_graph(knotset, knot, good_only = False):
     adj_knots = knotset.adjacent_knots(knot)
 
     # Generate a list of edges, and make a graph based on those edges.
@@ -124,16 +134,16 @@ def adjacent_graph(knotset, knot, name, good_only = False):
     for adj_knot in adj_knots:
         nodes.append(node_gen(adj_knot))
 
-    graph_from_data(nodes, edges, name, "Adjacent to best.", good_only)
+    spec = GraphSpec(nodes, edges, good_only)
+    return spec
 
-
-# Graph of vertices n away from q knot.
-def n_adjacent_graph(knotset, knot, name, n, good_only = False):
+# Returns the specs for a graph of vertices n away from q knot.
+def n_adjacent_graph(knotset, knot, n, good_only = False):
     if n == 0:
         nodes = [node_gen(knot)]
-        graph_from_data(nodes, [], name, "Single node.")
+        spec = GraphSpec(nodes, [], good_only)
+        return spec
     else:
-        graph_name = str(n) + "-adjacent"
         edges = []
         all_knots = [knot]
         start = 0
@@ -172,4 +182,5 @@ def n_adjacent_graph(knotset, knot, name, n, good_only = False):
 
         nodes = [node_gen(knot) for knot in all_knots]
 
-        graph_from_data(nodes, edges, name, graph_name, good_only)
+        spec = GraphSpec(nodes, edges, good_only)
+        return spec
