@@ -46,3 +46,16 @@
 
 - Begin tech report
   - Talk about this in meeting first
+
+
+- Remember that the number of components need to be at least 12 * number of rotations around the center
+  - Implement a heuristic based on that
+  - Ensure that bending angles between points on the knot is more or less pi/6 degrees
+    - If not, reject
+  - Ensure that there is some separation between lines too
+
+- Look for the graph of costs for the moves we have in simulated annealing
+- Look to see if we can optimize the curve inputted
+
+
+Find a way to convert Control Points to a cubic polynomial that spits out points on the b - Spline
