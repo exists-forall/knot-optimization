@@ -7,6 +7,7 @@ extern crate rand;
 
 use std::env::args;
 use std::f64::consts::PI;
+use std::f64::consts::E;
 use std::f64::INFINITY;
 use std::fs::File;
 use std::process::exit;
@@ -16,17 +17,18 @@ use nalgebra::{UnitQuaternion, Vector3};
 
 use knot::optimize_tools::{Chain, Leg, PhantomJoint, RepulsionChain};
 use knot::defaults::continuous_optimization::{
-    COST_PARAMS, CURVE_9_40_CHAIN_SIZE, MAX_REPULSION_STRENGTH, RATE, REPULSION,
+    COST_PARAMS, TREFOIL_CHAIN_SIZE, MAX_REPULSION_STRENGTH, RATE, REPULSION,
     REPULSION_EXPONENT, REPULSION_STRENGTH, RETURN_TO_INITIAL, RETURN_TO_INITIAL_WEIGHT, STEPS,
 };
-use knot::geometries::curve_9_40;
+use knot::geometries::trefoil_curve;
 use knot::isometry_adjust;
 use knot::report::{JointsParity, KnotGeometry, Transform};
 use knot::symmetry::{symmetries, symmetries_with_skip};
 
 const TAU: f64 = 2.0 * PI;
 const TWO_WEIGHT: f64 = 0.5;
-const EPOCHS: i32 = 1000;
+const EPOCHS: i32 = 500;
+
 
 /* Adjust the constant value as needed!
 fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
@@ -45,10 +47,13 @@ fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
 fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
     if cost_diff > 0.0 {
         true
+    } else if cost_diff < -2.0 {
+        false
     } else {
         let prob : f64;
-        prob = ((10.0 * (epoch as f64))/(EPOCHS as f64)).floor() / 10.0;
+        prob = E.powf(cost_diff*50.0*(epoch as f64 / EPOCHS as f64)) - (epoch as f64 / EPOCHS as f64);
         if rand::random::<f64>() < prob {
+            eprintln!("Prob: {}", prob);
             true
         } else {
             false
@@ -124,9 +129,9 @@ fn main() {
         }
         None => (
             RepulsionChain::new(
-                curve_9_40::chain(
-                    CURVE_9_40_CHAIN_SIZE,
-                    0.7,
+                trefoil_curve::chain(
+                    TREFOIL_CHAIN_SIZE,
+                    3.375,
                     COST_PARAMS,
                     RETURN_TO_INITIAL_WEIGHT,
                     RATE,
@@ -136,7 +141,7 @@ fn main() {
                 REPULSION_STRENGTH,
                 MAX_REPULSION_STRENGTH,
             ),
-            symmetries_with_skip(3, 4)
+            symmetries_with_skip(3, 2)
                 .map(|iso| Transform::from_isometry(iso.to_superset()))
                 .collect(),
             JointsParity::Even,
@@ -173,10 +178,10 @@ fn main() {
                 offset_chain.joints[rand_joint]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
             offset_chain.joints[rand_joint + 1] =
-                offset_chain.joints[rand_joint]
+                offset_chain.joints[rand_joint + 1]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -2.0 * angle);
             offset_chain.joints[rand_joint + 2] =
-                offset_chain.joints[rand_joint]
+                offset_chain.joints[rand_joint + 2]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
         } else {
             rand_joint = x as usize % (curr_chain.joints.len() - 1);
@@ -187,7 +192,7 @@ fn main() {
                 offset_chain.joints[rand_joint]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
             offset_chain.joints[rand_joint + 1] =
-                offset_chain.joints[rand_joint]
+                offset_chain.joints[rand_joint + 1]
                     * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -1.0 * angle);
         }
 
@@ -205,22 +210,23 @@ fn main() {
             if epoch <= EPOCHS / 4 {
                 change[0] += 1;
             } else {
-                let q: usize = ((EPOCHS as f64)/(epoch as f64)).floor() as usize;
+                let q: usize = (4.0 * (epoch as f64)/(EPOCHS as f64)).floor() as usize;
                 change[q] = change[q] + 1;
             }
-            eprintln!("Changed!");
+            // eprintln!("Changed!");
             // eprintln!("{} {:+} : {} {:+}", rand_joint, (angle * 16.0 / TAU), cost, cost_diff);
+            eprintln!("Cost after epoch {}: {}", epoch, curr_cost);
         } else {
-            eprintln!("Unchanged!");
+            // eprintln!("Unchanged!");
             // eprintln!("{} {:+} : {} {:+}", rand_joint, (angle * 16.0 / TAU), cost, cost_diff);
         }
-        eprintln!("Cost after epoch {}: {}", epoch, curr_cost);
+
     }
 
-    eprintln!("\nFinal steps:");
-    for &(i, offset) in &steps {
-        eprintln!("{} {:+}", i, offset);
-    }
+    // eprintln!("\nFinal steps:");
+    // for &(i, offset) in &steps {
+    //     eprintln!("{} {:+}", i, offset);
+    // }
 
     let transforms = curr_chain
         .joints
@@ -238,13 +244,15 @@ fn main() {
         transforms,
     };
 
-    eprintln!("\nFinal geometry:");
+
+
+    println!("\nFinal geometry:");
     println!("{}", serde_json::to_string_pretty(&geometry).unwrap());
 
-    eprintln!("\nChanges per Quarter of Total Steps");
+    println!("\nChanges per Quarter of Total Steps");
     println!("{:?}", change);
 
-    eprintln!("\nFinal Cost, Best Found Cost");
-    eprintln!("{}, {} at epoch {}", curr_cost, best_cost, best_epoch);
+    println!("\nFinal Cost, Best Found Cost");
+    println!("{}, {} at epoch {}", curr_cost, best_cost, best_epoch);
 
 }

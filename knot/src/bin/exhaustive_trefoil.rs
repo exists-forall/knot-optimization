@@ -121,6 +121,7 @@ fn generate_knot(
     angles: [u32; NUM_JOINTS as usize],
     parity: JointsParity,
 ) -> Knot {
+    eprintln!("Sym:{}, Skip:{}", symmetry, skip);
     let mut joint_transformations = [Isometry3::identity(); NUM_JOINTS as usize];
 
     fill_slice(

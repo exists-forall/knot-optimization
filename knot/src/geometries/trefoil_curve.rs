@@ -2,6 +2,7 @@ use std::f64::consts::PI;
 
 use alga::general::SubsetOf;
 use nalgebra::{UnitQuaternion, Vector3};
+use nalgebra::Point3;
 
 use optimize_tools::{Chain, Leg, PhantomJoint};
 use cost::CostParams;
@@ -10,9 +11,9 @@ use isometry_adjust as iso_adj;
 use symmetry::adjacent_symmetry;
 
 use geometries::from_curve::from_curve_natural_parameterize;
-use geometries::spherical::spherical;
 
 const TAU: f64 = 2.0 * PI;
+const HEIGHT: f64 = 0.95;
 
 pub fn chain(
     chain_size: usize,
@@ -34,7 +35,7 @@ pub fn chain(
         },
         // post-phantom
         PhantomJoint {
-            symmetry: adjacent_symmetry(3, 1).to_superset(),
+            symmetry: adjacent_symmetry(6, 1).to_superset(),
             index: chain_size - 1,
             leg: Leg::Outgoing,
         },
@@ -49,14 +50,15 @@ pub fn chain(
         // joints
         from_curve_natural_parameterize(
             2.7,  // arc length step
-            0.01, // dt
+            0.005, // dt
             0.0,  // start
-            1.0,  // end
+            TAU / 6.0,  // end
             |t| {
-                let theta = 2.0 * TAU / 3.0 * t;
-                let phi = 1.0 * (TAU / 2.0 * t).sin();
-                let rho = 7.0 + 2.5 * (TAU / 2.0 * t).cos();
-                spherical(theta, phi, scale * rho)
+                Point3::new(
+                    scale * (t.sin() + 2.0 * (2.0 * t).sin()),
+                    scale * (t.cos() - 2.0 * (2.0 * t).cos()),
+                    -scale * HEIGHT * (3.0 * t).sin(),
+                )
             },
         ).collect(),
     )
