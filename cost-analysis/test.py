@@ -43,17 +43,19 @@ def good_adjacency_sizes():
 def knot_plot_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     start_knot = full_set.knots[10][0]
-    grapher.adjacent_graph(full_set, start_knot, "test_start")
-
+    spec = grapher.adjacent_graph(full_set, start_knot, "test_start")
+    grapher.graph_from_data(spec, "knot_plot_test", "test_start.")
 
 def graph_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     start_knot = full_set.knots[10][0]
-    grapher.n_adjacent_graph(full_set, start_knot, "2-adjacent to best.", 3)
+    spec = grapher.n_adjacent_graph(full_set, start_knot, "2-adjacent to best.", 3)
+    grapher.graph_from_data(spec, "graph_test", "2-adjacent to best.")
 
 def good_graph_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     start_knot = full_set.knots[10][0]
-    grapher.n_adjacent_graph(full_set, start_knot, "4-adjacent to best.", 4, True)
+    spec = grapher.n_adjacent_graph(full_set, start_knot, 2, True)
+    grapher.graph_from_data(spec, "good_graph_test", "Good 2-adjacent to best.")
 
 good_graph_test()
