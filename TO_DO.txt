@@ -44,8 +44,7 @@
   - Start by running a few b-splines.
 
 
-- Begin tech report
-  - Talk about this in meeting first
+- Begin tech report!
 
 
 - Remember that the number of components need to be at least 12 * number of rotations around the center
@@ -53,6 +52,7 @@
   - Ensure that bending angles between points on the knot is more or less pi/6 degrees
     - If not, reject
   - Ensure that there is some separation between lines too
+
 
 - Look for the graph of costs for the moves we have in simulated annealing
 - Look to see if we can optimize the curve inputted
