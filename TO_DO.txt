@@ -59,3 +59,4 @@
 
 
 Find a way to convert Control Points to a cubic polynomial that spits out points on the b - Spline
+- t is spaced equally by number in bspline!
