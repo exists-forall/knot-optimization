@@ -13,7 +13,7 @@ use std::fs::File;
 use std::process::exit;
 
 use alga::general::SubsetOf;
-use nalgebra::{UnitQuaternion, Vector3};
+use nalgebra::{Isometry3, UnitQuaternion, Vector3};
 
 use knot::optimize_tools::{Chain, Leg, PhantomJoint, RepulsionChain};
 use knot::defaults::continuous_optimization::{
@@ -27,7 +27,7 @@ use knot::symmetry::{symmetries, symmetries_with_skip};
 
 const TAU: f64 = 2.0 * PI;
 const TWO_WEIGHT: f64 = 0.5;
-const EPOCHS: i32 = 1000;
+const EPOCHS: i32 = 500;
 
 
 /* Adjust the constant value as needed!
@@ -148,13 +148,33 @@ fn main() {
         ),
     };
     let mut curr_cost = optimize(&mut curr_chain, STEPS);
-    eprintln!("Original cost: {}", curr_cost);
+    println!("Original cost: {}", curr_cost);
+    println!("Approximate original locking angles:");
+    let mut prev_trans = Isometry3::identity();
+    for &joint in &curr_chain.joints {
+        let trans_0 = prev_trans;
+        let trans_1 = joint * curr_chain.spec.origin_to_in();
+
+        let axis_0 = trans_0 * Vector3::y_axis().to_superset();
+        let axis_1 = trans_1 * Vector3::y_axis().to_superset();
+
+        let align = UnitQuaternion::rotation_between(&axis_1, &axis_0)
+            .unwrap_or(UnitQuaternion::identity());
+        let aligned_rel_rotation =
+            trans_0.rotation.inverse() * align * trans_1.rotation;
+        let locking_angle = aligned_rel_rotation.angle();
+        let locking_number =
+            locking_angle / (2.0 * PI) * (curr_chain.num_angles as f64);
+        println!("{}", locking_number);
+        prev_trans = joint * curr_chain.spec.origin_to_out();
+    }
 
     let mut steps: Vec<(usize, f64)> = Vec::new();
 
     let mut change: [i32; 4] = [0, 0, 0, 0];
     let mut best_cost = curr_cost;
     let mut best_epoch = 0;
+    let mut best_chain = curr_chain.clone();
 
     for epoch in 0..EPOCHS {
 
@@ -204,6 +224,7 @@ fn main() {
             if best_cost > curr_cost {
                 best_cost = curr_cost;
                 best_epoch = epoch;
+                best_chain = curr_chain.clone();
                 eprintln!("New Best: {}", best_cost);
             }
             steps.push((rand_joint, (angle * 16.0 / TAU)));
@@ -243,16 +264,56 @@ fn main() {
         symmetries: symms,
         transforms,
     };
+    // println!("\nFinal geometry:");
+    // println!("{}", serde_json::to_string_pretty(&geometry).unwrap());
 
+    // println!("\nChanges per Quarter of Total Steps");
+    // println!("{:?}", change);
 
+    println!("\nFinal Cost");
+    println!("{}", curr_cost);
 
-    eprintln!("\nFinal geometry:");
-    println!("{}", serde_json::to_string_pretty(&geometry).unwrap());
+    println!("Approximate locking angles:");
+    let mut prev_trans = Isometry3::identity();
+    for &joint in &curr_chain.joints {
+        let trans_0 = prev_trans;
+        let trans_1 = joint * curr_chain.spec.origin_to_in();
 
-    eprintln!("\nChanges per Quarter of Total Steps");
-    println!("{:?}", change);
+        let axis_0 = trans_0 * Vector3::y_axis().to_superset();
+        let axis_1 = trans_1 * Vector3::y_axis().to_superset();
 
-    eprintln!("\nFinal Cost, Best Found Cost");
-    eprintln!("{}, {} at epoch {}", curr_cost, best_cost, best_epoch);
+        let align = UnitQuaternion::rotation_between(&axis_1, &axis_0)
+            .unwrap_or(UnitQuaternion::identity());
+        let aligned_rel_rotation =
+            trans_0.rotation.inverse() * align * trans_1.rotation;
+        let locking_angle = aligned_rel_rotation.angle();
+        let locking_number =
+            locking_angle / (2.0 * PI) * (curr_chain.num_angles as f64);
+        println!("{}", locking_number);
+        prev_trans = joint * curr_chain.spec.origin_to_out();
+    }
+
+    println!("\nBest Found Cost");
+    println!("{} at epoch {}", best_cost, best_epoch);
+
+    println!("Approximate locking angles:");
+    let mut prev_trans = Isometry3::identity();
+    for &joint in &best_chain.joints {
+        let trans_0 = prev_trans;
+        let trans_1 = joint * best_chain.spec.origin_to_in();
+
+        let axis_0 = trans_0 * Vector3::y_axis().to_superset();
+        let axis_1 = trans_1 * Vector3::y_axis().to_superset();
+
+        let align = UnitQuaternion::rotation_between(&axis_1, &axis_0)
+            .unwrap_or(UnitQuaternion::identity());
+        let aligned_rel_rotation =
+            trans_0.rotation.inverse() * align * trans_1.rotation;
+        let locking_angle = aligned_rel_rotation.angle();
+        let locking_number =
+            locking_angle / (2.0 * PI) * (best_chain.num_angles as f64);
+        println!("{}", locking_number);
+        prev_trans = joint * best_chain.spec.origin_to_out();
+    }
 
 }
