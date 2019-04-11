@@ -60,3 +60,9 @@
 
 Find a way to convert Control Points to a cubic polynomial that spits out points on the b - Spline
 - t is spaced equally by number in bspline!
+
+
+We can try to look at initial optimizations and their corresponding parities and see if there is a clear path towards them
+
+Is it possible that every single angle is within some constant number of moves from a good solution?
+ - Create some metric for deviation. Probably just number of "moves".
