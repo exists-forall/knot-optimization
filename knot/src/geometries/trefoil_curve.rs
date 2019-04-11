@@ -13,7 +13,7 @@ use symmetry::adjacent_symmetry;
 use geometries::from_curve::from_curve_natural_parameterize;
 
 const TAU: f64 = 2.0 * PI;
-const HEIGHT: f64 = 0.95;
+const HEIGHT: f64 = 1.0;
 
 pub fn chain(
     chain_size: usize,

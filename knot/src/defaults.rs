@@ -77,7 +77,7 @@ pub mod continuous_optimization {
 
     pub const CURVE_9_40_CHAIN_SIZE: usize = 8;
 
-    pub const TREFOIL_CHAIN_SIZE: usize = 5;
+    pub const TREFOIL_CHAIN_SIZE: usize = 6;
 
     pub const RETURN_TO_INITIAL: bool = true;
 
