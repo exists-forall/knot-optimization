@@ -35,7 +35,7 @@ pub fn chain(
         },
         // post-phantom
         PhantomJoint {
-            symmetry: adjacent_symmetry(6, 1).to_superset(),
+            symmetry: adjacent_symmetry(3, 2).to_superset(),
             index: chain_size - 1,
             leg: Leg::Outgoing,
         },
