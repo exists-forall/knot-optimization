@@ -38,7 +38,6 @@ class KnotSet:
                 data = json.load(f)
 
             self.total_parity = data["num_angles"]
-
             self.knots = [[] for _ in range(self.total_parity)]
 
             for knot in data["knots"]:

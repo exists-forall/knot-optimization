@@ -1,7 +1,7 @@
 import igraph as ig
 import plotly.graph_objs as go
 import plotly.plotly as py
-
+import analysis
 
 class GraphSpec:
     def __init__(self, nodes, edges, good_only):
@@ -18,6 +18,20 @@ def node_gen(knot):
     }
     return node
 
+# Takes in a set of specs and puts them onto the same graph.
+def merge_graphs(spec_set):
+    new_nodes = []
+    new_edges = []
+    good_only = spec_set[0].good_only
+    for spec in spec_set:
+        offset = len(new_nodes)
+        new_nodes.extend(spec.nodes)
+        for edge in spec.edges:
+            edge[0] += offset
+            edge[1] += offset
+            new_edges.append(edge)
+    GraphSpec(new_nodes, new_edges, good_only)
+
 
 # Takes in the following:
 # nodes: a list of knot nodes, generated from nodegen
@@ -29,6 +43,10 @@ def graph_from_data(spec, file_name, title):
     nodes = spec.nodes
     edges = spec.edges
     good_only = spec.good_only
+
+    for i in range(len(nodes)):
+        if [i, i] not in edges:
+            edges.append([i, i])
 
     # Generate an iGraph from the edges, and spread it out accordingly.
     G = ig.Graph(edges, directed=False)
@@ -184,3 +202,25 @@ def n_adjacent_graph(knotset, knot, n, good_only = False):
 
         spec = GraphSpec(nodes, edges, good_only)
         return spec
+
+
+# Given a set of knots, graph them with appropriate edges included.
+def add_edges(knotset):
+    nodes = []
+    edges = []
+
+    knots = knotset.one_d_knot_list()
+
+    for some_knot in knots:
+        nodes.append(node_gen(some_knot))
+
+
+    for i in range(len(knots)):
+        knot1 = knots[i]
+        for j in range(i + 1, len(knots)):
+            dist = analysis.distance(knot1, knots[j], knotset)            
+            if dist == 1:
+                edges.append([i, j])
+
+    spec = GraphSpec(nodes, edges, True)
+    return spec
