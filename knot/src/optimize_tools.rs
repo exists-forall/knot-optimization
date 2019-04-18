@@ -234,7 +234,7 @@ impl Chain {
                 coords: joint.translation.vector,
             };
             *joint =
-                Translation3::from_vector(diff * self.return_to_initial_weight * self.descent_rate)
+                Translation3::from(diff * self.return_to_initial_weight * self.descent_rate)
                     * *joint;
         }
     }

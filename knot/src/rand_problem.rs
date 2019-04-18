@@ -1,4 +1,4 @@
-use rand::distributions::{IndependentSample, Normal};
+use rand::distributions::{Distribution, Normal};
 use rand::Rng;
 
 use cost::CostParams;
@@ -8,28 +8,28 @@ use nalgebra::{Isometry3, Quaternion, Translation3, Unit, UnitQuaternion, Vector
 
 fn rand_quaternion<R: Rng>(rng: &mut R) -> UnitQuaternion<f64> {
     let dist = Normal::new(0.0, 1.0);
-    let w = dist.ind_sample(rng);
-    let x = dist.ind_sample(rng);
-    let y = dist.ind_sample(rng);
-    let z = dist.ind_sample(rng);
+    let w = dist.sample(rng);
+    let x = dist.sample(rng);
+    let y = dist.sample(rng);
+    let z = dist.sample(rng);
     UnitQuaternion::new_normalize(Quaternion::new(w, x, y, z))
 }
 
 fn rand_direction<R: Rng>(rng: &mut R) -> Unit<Vector3<f64>> {
     let dist = Normal::new(0.0, 1.0);
-    let x = dist.ind_sample(rng);
-    let y = dist.ind_sample(rng);
-    let z = dist.ind_sample(rng);
+    let x = dist.sample(rng);
+    let y = dist.sample(rng);
+    let z = dist.sample(rng);
     Unit::new_normalize(Vector3::new(x, y, z))
 }
 
-fn rand_translation<RadiusDist: IndependentSample<f64>, R: Rng>(
+fn rand_translation<RadiusDist: Distribution<f64>, R: Rng>(
     radius_dist: &RadiusDist,
     rng: &mut R,
 ) -> Translation3<f64> {
     let dir = rand_direction(rng);
-    let radius = radius_dist.ind_sample(rng);
-    Translation3::from_vector(dir.unwrap() * radius)
+    let radius = radius_dist.sample(rng);
+    Translation3::from(dir.into_inner() * radius)
 }
 
 fn rand_joint_trans<R: Rng>(rng: &mut R) -> Isometry3<f64> {
