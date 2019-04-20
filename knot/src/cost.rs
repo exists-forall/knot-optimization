@@ -69,7 +69,7 @@ pub struct Costs {
 /// between the "out" point of one joint and the "in" point of another.
 pub fn costs_aligned(
     thresholds: &Thresholds,
-    num_angles: u32,
+    num_angles: u16,
     trans_0: &Isometry3<f64>,
     trans_1: &Isometry3<f64>,
 ) -> Costs {
@@ -119,7 +119,7 @@ pub fn costs_aligned(
 /// of one joint and the "in" point of another.
 pub fn cost_aligned(
     cost_params: &CostParams,
-    num_angles: u32,
+    num_angles: u16,
     trans_0: &Isometry3<f64>,
     trans_1: &Isometry3<f64>,
 ) -> f64 {
@@ -140,7 +140,7 @@ fn align(trans: &Isometry3<f64>) -> Isometry3<f64> {
 /// between the "out" points of two joints.
 pub fn costs_opposing(
     thresholds: &Thresholds,
-    num_angles: u32,
+    num_angles: u16,
     trans_0: &Isometry3<f64>,
     trans_1: &Isometry3<f64>,
 ) -> Costs {
@@ -153,7 +153,7 @@ pub fn costs_opposing(
 /// of two joints.
 pub fn cost_opposing(
     cost_params: &CostParams,
-    num_angles: u32,
+    num_angles: u16,
     trans_0: &Isometry3<f64>,
     trans_1: &Isometry3<f64>,
 ) -> f64 {
@@ -168,7 +168,7 @@ mod test {
 
     fn assert_symmetry(
         thresholds: &Thresholds,
-        num_angles: u32,
+        num_angles: u16,
         trans_0: &Isometry3<f64>,
         trans_1: &Isometry3<f64>,
     ) {

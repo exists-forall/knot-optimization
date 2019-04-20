@@ -49,7 +49,7 @@ pub struct KnotReports {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CompleteKnotReports {
     pub joint_spec: JointSpec,
-    pub num_angles: u32,
+    pub num_angles: u16,
     pub symmetry_count: u32,
     pub symmetry_skip: u32,
     pub cost_params: CostParams,
@@ -60,7 +60,7 @@ pub struct CompleteKnotReports {
 pub fn complete_reports(reports: KnotReports) -> CompleteKnotReports {
     CompleteKnotReports {
         joint_spec: reports.joint_spec.unwrap_or(defaults::joint_spec()),
-        num_angles: reports.num_angles.unwrap_or(defaults::NUM_ANGLES),
+        num_angles: reports.num_angles.unwrap_or(defaults::NUM_ANGLES as u32) as u16,
         symmetry_count: reports.symmetry_count,
         symmetry_skip: reports.symmetry_skip,
         cost_params: reports.cost_params.unwrap_or(defaults::COST_PARAMS),
@@ -176,7 +176,7 @@ impl Transform {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KnotGeometry {
     pub joint_spec: JointSpec,
-    pub num_angles: u32,
+    pub num_angles: u16,
     pub cost_params: CostParams,
     pub parity: JointsParity,
     pub symmetries: Vec<Transform>,

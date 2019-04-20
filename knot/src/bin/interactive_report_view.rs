@@ -73,7 +73,7 @@ impl ReportsView {
         println!("{:#?}", report);
 
         match self.viewed {
-            Some(ref mut prev) => self.window.remove(prev),
+            Some(ref mut prev) => self.window.remove_node(prev),
             None => {}
         }
 

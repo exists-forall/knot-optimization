@@ -34,8 +34,8 @@ use clap::{App, Arg};
 
 macro_rules! exhaustive {
     ($symbols: expr; $count: expr) => {{
-        const SYMBOLS: u32 = $symbols;
-        const COUNT: u32 = $count;
+        const SYMBOLS: u16 = $symbols;
+        const COUNT: u16 = $count;
         (0u64..SYMBOLS.pow(COUNT) as u64).into_par_iter().map(|i| {
             let mut remaining = i;
             let mut result = [0u32; COUNT as usize];

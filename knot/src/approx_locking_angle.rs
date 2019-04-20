@@ -27,7 +27,7 @@ fn y_rotation_angle(rot: UnitQuaternion<f64>) -> f64 {
 }
 
 pub fn locking_angle_aligned(
-    num_angles: u32,
+    num_angles: u16,
     trans_0: &Isometry3<f64>,
     trans_1: &Isometry3<f64>,
 ) -> f64 {
@@ -51,7 +51,7 @@ pub fn locking_angle_aligned(
 }
 
 pub fn locking_angle_opposing(
-    num_angles: u32,
+    num_angles: u16,
     trans_0: &Isometry3<f64>,
     trans_1: &Isometry3<f64>,
 ) -> f64 {

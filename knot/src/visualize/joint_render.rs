@@ -10,7 +10,7 @@ use nalgebra::{Isometry3, Point3, Translation3, UnitQuaternion, Vector3};
 use joint::JointSpec;
 
 /// Count from `start` to `end` in `count` equally-spaced steps.
-fn float_steps_inclusive(start: f32, end: f32, count: u32) -> impl Iterator<Item = f32> {
+fn float_steps_inclusive(start: f32, end: f32, count: u16) -> impl Iterator<Item = f32> {
     let step = (end - start) / ((count - 1) as f32);
     (0..count).map(move |i| start + step * (i as f32))
 }
@@ -18,7 +18,7 @@ fn float_steps_inclusive(start: f32, end: f32, count: u32) -> impl Iterator<Item
 /// Given a sequence of vertex indices [v0, v1, v2, v3, ...], tesselate them into triangles of the
 /// form [(v0, v1, v2), (v1, v3, v2), ...].  This is called a [triangle
 /// strip](https://en.wikipedia.org/wiki/Triangle_strip).
-fn tesselate_strip<I: Iterator<Item = u32>>(mut vertices: I) -> impl Iterator<Item = Point3<u32>> {
+fn tesselate_strip<I: Iterator<Item = u16>>(mut vertices: I) -> impl Iterator<Item = Point3<u16>> {
     let mut v0_opt = vertices.next();
     let mut v1_opt = vertices.next();
     let mut reverse_winding = false;
@@ -39,12 +39,12 @@ fn tesselate_strip<I: Iterator<Item = u32>>(mut vertices: I) -> impl Iterator<It
 
 fn shared_to_duplicated(
     vertices: &[Point3<f32>],
-    faces: &[Point3<u32>],
-) -> (Vec<Point3<f32>>, Vec<Point3<u32>>) {
+    faces: &[Point3<u16>],
+) -> (Vec<Point3<f32>>, Vec<Point3<u16>>) {
     let mut new_vertices = Vec::new();
     let mut new_faces = Vec::new();
     for face in faces {
-        let start_index = new_vertices.len() as u32;
+        let start_index = new_vertices.len() as u16;
         new_vertices.push(vertices[face.x as usize]);
         new_vertices.push(vertices[face.y as usize]);
         new_vertices.push(vertices[face.z as usize]);
@@ -58,8 +58,8 @@ fn sliced_cylinder_geometry(
     h: f32,
     bottom_angle: f32,
     top_angle: f32,
-    res: u32,
-) -> (Vec<Point3<f32>>, Vec<Vector3<f32>>, Vec<Point3<u32>>) {
+    res: u16,
+) -> (Vec<Point3<f32>>, Vec<Vector3<f32>>, Vec<Point3<u16>>) {
     let mut coords = Vec::with_capacity(2 * res as usize);
     let mut normals = Vec::with_capacity(2 * res as usize);
 
@@ -100,7 +100,7 @@ fn sliced_cylinder_mesh(
     h: f32,
     bottom_angle: f32,
     top_angle: f32,
-    res: u32,
+    res: u16,
     style: Style,
 ) -> Mesh {
     let (coords, normals, faces) = sliced_cylinder_geometry(r, h, bottom_angle, top_angle, res);
@@ -117,7 +117,7 @@ fn sliced_cylinder_mesh(
 fn geometry_to_faces(
     dest: &mut Vec<[(Point3<f32>, Vector3<f32>); 3]>,
     trans: Isometry3<f32>,
-    geom: (Vec<Point3<f32>>, Vec<Vector3<f32>>, Vec<Point3<u32>>),
+    geom: (Vec<Point3<f32>>, Vec<Vector3<f32>>, Vec<Point3<u16>>),
 ) {
     let (coords, normals, faces) = geom;
     for face in faces {
@@ -133,7 +133,7 @@ fn geometry_to_faces(
 }
 
 pub fn sliced_cylinder_faces(
-    num_angles: u32,
+    num_angles: u16,
     spec: &JointSpec,
 ) -> Vec<[(Point3<f32>, Vector3<f32>); 3]> {
     let geom1 = sliced_cylinder_geometry(
@@ -171,7 +171,7 @@ pub fn sliced_cylinder_faces(
 pub fn add_joints(
     root: &mut SceneNode,
     joint_spec: &JointSpec,
-    num_angles: u32,
+    num_angles: u16,
     count: usize,
     style: Style,
 ) -> Vec<SceneNode> {

@@ -22,7 +22,7 @@ pub struct PhantomJoint {
 #[derive(Clone, Debug)]
 pub struct Chain {
     pub spec: JointSpec,
-    pub num_angles: u32,
+    pub num_angles: u16,
     pub pre_phantom: PhantomJoint,
     pub post_phantom: PhantomJoint,
     pub cost_params: CostParams,
@@ -43,7 +43,7 @@ fn get_leg(spec: &JointSpec, joint: &Isometry3<f64>, leg: &Leg) -> Isometry3<f64
 impl Chain {
     pub fn new(
         spec: JointSpec,
-        num_angles: u32,
+        num_angles: u16,
         pre_phantom: PhantomJoint,
         post_phantom: PhantomJoint,
         cost_params: CostParams,

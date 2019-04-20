@@ -41,7 +41,7 @@ fn rand_joint_trans<R: Rng>(rng: &mut R) -> Isometry3<f64> {
 pub fn rand_problem<R: Rng>(
     rng: &mut R,
     cost_params: CostParams,
-    num_angles: u32,
+    num_angles: u16,
     symmetry_count: u32,
 ) -> Problem {
     let last_joint_out = rand_joint_trans(rng);

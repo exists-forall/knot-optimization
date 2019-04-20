@@ -146,7 +146,7 @@ pub fn at_angles<I: Iterator<Item = RelativeJoint>>(
 /// suitable for use with `at_angles`.
 pub fn discrete_angles<I: Iterator<Item = i32>>(
     spec: JointSpec,
-    num_angles: u32,
+    num_angles: u16,
     angles: I,
 ) -> impl Iterator<Item = RelativeJoint> {
     let angle_step = (2.0 * PI) / (num_angles as f64);
@@ -163,7 +163,7 @@ pub fn discrete_angles<I: Iterator<Item = i32>>(
 /// iterator suitable for use with `at_angles`.
 pub fn discrete_symmetric_angles<I: Iterator<Item = i32>>(
     spec: JointSpec,
-    num_angles: u32,
+    num_angles: u16,
     parity: JointsParity,
     angles: I,
 ) -> impl Iterator<Item = RelativeJoint> {

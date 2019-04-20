@@ -103,7 +103,7 @@ fn main() {
     let mut nodes = add_joints(
         window.scene_mut(),
         &chain.spec,
-        chain.num_angles,
+        chain.num_angles as u16,
         chain.joints.len() * 6
         // debug:
         + if DEBUG_ANGLES {

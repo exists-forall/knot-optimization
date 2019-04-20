@@ -40,7 +40,7 @@ pub fn initial_symmetry_adjusts() -> impl Iterator<Item = Vars> {
     }))
 }
 
-pub const NUM_ANGLES: u32 = 16;
+pub const NUM_ANGLES: u16 = 16;
 
 pub const SYMMETRY_COUNT: u32 = 3;
 

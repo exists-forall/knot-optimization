@@ -89,7 +89,7 @@ fn cot(theta: f64) -> f64 {
 pub struct Problem {
     cost_params: CostParams,
     last_joint_out: Isometry3<f64>,
-    num_angles: u32,
+    num_angles: u16,
     adjacent_symmetry: UnitQuaternion<f64>,
     radial_angle_normalizer: f64,
     symmetry_count: u32,
@@ -115,7 +115,7 @@ impl Problem {
     pub fn new(
         cost_params: CostParams,
         last_joint_out: Isometry3<f64>,
-        num_angles: u32,
+        num_angles: u16,
         symmetry_count: u32,
         skip: u32,
     ) -> Problem {

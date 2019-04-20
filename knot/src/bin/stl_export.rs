@@ -28,7 +28,7 @@ fn transform_face(trans: Isometry3<f32>, mut face: Face) -> Face {
     face
 }
 
-fn write_STL_face(writer: &mut io::Write, face: &Face) -> io::Result<()> {
+fn write_stl_face(writer: &mut io::Write, face: &Face) -> io::Result<()> {
     let avg_normal = nalgebra::normalize(&(face[0].1 + face[1].1 + face[2].1));
     writeln!(
         writer,
@@ -48,10 +48,10 @@ fn write_STL_face(writer: &mut io::Write, face: &Face) -> io::Result<()> {
     Ok(())
 }
 
-fn write_STL(writer: &mut io::Write, faces: &[Face]) -> io::Result<()> {
+fn write_stl(writer: &mut io::Write, faces: &[Face]) -> io::Result<()> {
     writeln!(writer, "solid knot")?;
     for face in faces {
-        write_STL_face(writer, face)?;
+        write_stl_face(writer, face)?;
     }
     writeln!(writer, "endsolid")?;
     Ok(())
@@ -71,7 +71,7 @@ fn main() {
         exit(1);
     });
 
-    let faces_template = sliced_cylinder_faces(geometry.num_angles, &geometry.joint_spec);
+    let faces_template = sliced_cylinder_faces(geometry.num_angles as u16, &geometry.joint_spec);
 
     let mut faces: Vec<Face> = Vec::new();
 
@@ -102,5 +102,5 @@ fn main() {
         }
     }
 
-    write_STL(&mut io::stdout(), &faces).expect("IO Error");
+    write_stl(&mut io::stdout(), &faces).expect("IO Error");
 }

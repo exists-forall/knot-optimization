@@ -67,7 +67,7 @@ fn main() {
     let mut nodes = add_joints(
         window.scene_mut(),
         &spec,
-        NUM_ANGLES,
+        NUM_ANGLES ,
         rel_joint_angles.len() * (SYMMETRY_COUNT as usize) * 2,
         Style::Flat,
     );

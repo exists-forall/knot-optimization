@@ -58,7 +58,7 @@ fn main() {
     let mut nodes = add_joints(
         &mut group,
         &geometry.joint_spec,
-        geometry.num_angles,
+        geometry.num_angles as u16,
         total_nodes,
         Style::Flat,
     );
