@@ -140,6 +140,28 @@ def graph_from_data(spec, file_name, title):
     py.plot(fig, filename=file_name)
 
 
+# Given a set of knots, graph them with appropriate edges included.
+def add_edges(knotset):
+    nodes = []
+    edges = []
+
+    knots = knotset.one_d_knot_list()
+
+    for some_knot in knots:
+        nodes.append(node_gen(some_knot))
+
+
+    for i in range(len(knots)):
+        knot1 = knots[i]
+        for j in range(i + 1, len(knots)):
+            dist = analysis.distance(knot1, knots[j], knotset)
+            if dist <= 3 and dist != -1:
+                edges.append([i, j])
+
+    spec = GraphSpec(nodes, edges, True)
+    return spec
+
+
 # Returns the spec for a graph adjacent to one knot.
 def adjacent_graph(knotset, knot, good_only = False):
     adj_knots = knotset.adjacent_knots(knot)
@@ -204,22 +226,23 @@ def n_adjacent_graph(knotset, knot, n, good_only = False):
         return spec
 
 
+# Graph the top n knots of given parity, with edges between pairs of distances
+# less than or equal to d.
 # Given a set of knots, graph them with appropriate edges included.
-def add_edges(knotset):
+def same_parity_graph(knotset, n, parity, d):
     nodes = []
     edges = []
 
-    knots = knotset.one_d_knot_list()
+    knots = knotset.knots[parity]
 
-    for some_knot in knots:
-        nodes.append(node_gen(some_knot))
-
+    for i in range(min(n, len(knots))):
+        nodes.append(node_gen(knots[i]))
 
     for i in range(len(knots)):
         knot1 = knots[i]
         for j in range(i + 1, len(knots)):
             dist = analysis.distance(knot1, knots[j], knotset)
-            if dist <= 3 and dist != -1:
+            if dist <= d:
                 edges.append([i, j])
 
     spec = GraphSpec(nodes, edges, True)

@@ -21,7 +21,7 @@ def graph_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     start_knot = full_set.knots[10][0]
     spec = grapher.n_adjacent_graph(full_set, start_knot, 2)
-    grapher.graph_from_data(spec, "graph_test", "2-adjacent to best.")
+    grapher.graph_from_data(spec, "best_knot, d=3", "Neighborhood around best knot, d=3.")
 
 def good_graph_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
@@ -52,8 +52,13 @@ def good_parity_sum():
 def all_parity_sum():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     good_set = knot.KnotSet("trefoil_statistics/top_100.json")
-    for i in range(9):
-        print("Parity: " + str(i) + ", Good: " + str(len(good_set.knots[i])) + ", All: " + str(len(full_set.knots[i])))
+    for i in range(16):
+        print("Parity: " + str(i) + ", Top 100: " + str(len(good_set.knots[i])) + ", All: " + str(len(full_set.knots[i])))
+
+def same_parity_graph_test():
+    full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
+    spec = grapher.same_parity_graph(full_set, 50, 8, 3)
+    grapher.graph_from_data(spec, "Parity 8, Edges 3", "50 Best Knots of Parity 8, d=3.")
 
 
-all_parity_sum()
+graph_test()
