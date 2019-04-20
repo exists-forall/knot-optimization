@@ -38,7 +38,7 @@ pub enum JointsParity {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KnotReports {
     pub joint_spec: Option<JointSpec>,
-    pub num_angles: Option<u32>,
+    pub num_angles: Option<u16>,
     pub symmetry_count: u32,
     pub symmetry_skip: u32,
     pub cost_params: Option<CostParams>,
@@ -60,7 +60,7 @@ pub struct CompleteKnotReports {
 pub fn complete_reports(reports: KnotReports) -> CompleteKnotReports {
     CompleteKnotReports {
         joint_spec: reports.joint_spec.unwrap_or(defaults::joint_spec()),
-        num_angles: reports.num_angles.unwrap_or(defaults::NUM_ANGLES as u32) as u16,
+        num_angles: reports.num_angles.unwrap_or(defaults::NUM_ANGLES),
         symmetry_count: reports.symmetry_count,
         symmetry_skip: reports.symmetry_skip,
         cost_params: reports.cost_params.unwrap_or(defaults::COST_PARAMS),

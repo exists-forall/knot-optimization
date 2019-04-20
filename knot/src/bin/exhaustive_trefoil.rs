@@ -34,8 +34,8 @@ use clap::{App, Arg};
 
 macro_rules! exhaustive {
     ($symbols: expr; $count: expr) => {{
-        const SYMBOLS: u16 = $symbols;
-        const COUNT: u16 = $count;
+        const SYMBOLS: u32 = $symbols;
+        const COUNT: u32 = $count;
         (0u64..SYMBOLS.pow(COUNT) as u64).into_par_iter().map(|i| {
             let mut remaining = i;
             let mut result = [0u32; COUNT as usize];
@@ -121,7 +121,6 @@ fn generate_knot(
     angles: [u32; NUM_JOINTS as usize],
     parity: JointsParity,
 ) -> Knot {
-    eprintln!("Sym:{}, Skip:{}", symmetry, skip);
     let mut joint_transformations = [Isometry3::identity(); NUM_JOINTS as usize];
 
     fill_slice(
@@ -212,7 +211,7 @@ fn generate_knot(
 
 fn generate_knots(spec: JointSpec, symmetry: u32, skip: u32, parity: JointsParity) -> Vec<Knot> {
     println!("Generating {} candidate knots", NUM_ANGLES.pow(NUM_JOINTS));
-    let mut knots = exhaustive!(NUM_ANGLES; NUM_JOINTS)
+    let mut knots = exhaustive!(NUM_ANGLES as u32; NUM_JOINTS)
         .map(|angles| generate_knot(spec, symmetry, skip, angles, parity))
         .filter(|knot| knot.good_candidate)
         .collect::<Vec<_>>();
