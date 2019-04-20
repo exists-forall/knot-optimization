@@ -39,10 +39,21 @@ def distance_test():
         print(analysis.distance(start_knot, adj_knot, full_set))
 
 def good_neighborhoods_test():
+    good_set = knot.KnotSet("trefoil_statistics/top_100.json")
+
+    spec = grapher.add_edges(good_set)
+    grapher.graph_from_data(spec, "good_neighborhood_test", "Good Knots.")
+
+def good_parity_sum():
+    good_set = knot.KnotSet("trefoil_statistics/top_100.json")
+    for i in range(9):
+        print("Parity: " + str(i) + ", Number: " + str(len(good_set.knots[i])))
+
+def all_parity_sum():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
+    good_set = knot.KnotSet("trefoil_statistics/top_100.json")
+    for i in range(9):
+        print("Parity: " + str(i) + ", Good: " + str(len(good_set.knots[i])) + ", All: " + str(len(full_set.knots[i])))
 
-    spec = grapher.add_edges(full_set)
-    grapher.graph_from_data(spec, "all_neighborhood_test", "All Knots.")
 
-
-good_neighborhoods_test()
+all_parity_sum()

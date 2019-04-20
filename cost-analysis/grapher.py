@@ -218,8 +218,8 @@ def add_edges(knotset):
     for i in range(len(knots)):
         knot1 = knots[i]
         for j in range(i + 1, len(knots)):
-            dist = analysis.distance(knot1, knots[j], knotset)            
-            if dist == 1:
+            dist = analysis.distance(knot1, knots[j], knotset)
+            if dist <= 3 and dist != -1:
                 edges.append([i, j])
 
     spec = GraphSpec(nodes, edges, True)

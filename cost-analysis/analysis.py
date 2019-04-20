@@ -69,8 +69,6 @@ def top_adjacency_sizes():
 
     print(len(good_adjacencies))
 
-top_adjacency_sizes()
-
 def distance_from_good():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     good_set = knot.KnotSet("trefoil_statistics/top_100.json")
@@ -87,5 +85,3 @@ def distance_from_good():
                     min_dist = min(distance(full_knot, good_knot, full_set), min_dist)
                 if min_dist != 1000000000:
                     distances.append(min_dist)
-
-    print(max(distances))
