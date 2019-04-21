@@ -11,6 +11,14 @@ def test_knot_retrieval():
     equivalent = full_set.retrieve_from_angles(best_knot.angles, best_knot.parity)
     print(equivalent.angles)
 
+def cost_count():
+    good_set = knot.KnotSet("trefoil_statistics/top_100.json")
+    total = 0
+    for k in good_set.one_d_knot_list():
+        if k.cost < 0.05:
+            total += 1
+    print(total)
+
 def knot_plot_test():
     full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
     start_knot = full_set.knots[10][0]
@@ -60,5 +68,4 @@ def same_parity_graph_test():
     spec = grapher.same_parity_graph(full_set, 50, 8, 3)
     grapher.graph_from_data(spec, "Parity 8, Edges 3", "50 Best Knots of Parity 8, d=3.")
 
-
-graph_test()
+cost_count()
