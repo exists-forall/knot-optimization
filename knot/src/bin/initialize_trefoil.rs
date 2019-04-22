@@ -1,8 +1,6 @@
 extern crate alga;
-extern crate glfw;
-extern crate kiss3d;
 extern crate nalgebra;
-extern crate serde;
+extern crate kiss3d;
 extern crate serde_json;
 
 extern crate knot;
@@ -10,7 +8,6 @@ extern crate rand;
 
 use std::env::args;
 use std::f64::consts::PI;
-use std::f64::consts::E;
 use std::f64::INFINITY;
 use std::fs::File;
 use std::process::exit;
@@ -36,42 +33,7 @@ use knot::visualize::joint_render::{add_joints, Style};
 use knot::joint::{RelativeJoint, at_angles};
 
 const TAU: f64 = 2.0 * PI;
-const TWO_WEIGHT: f64 = 0.5;
-const EPOCHS: i32 = 500;
-
 const DEBUG_ANGLES: bool = false;
-
-
-/* Adjust the constant value as needed!
-fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
-    if cost_diff > 0.0 {
-        true
-    } else {
-        if rand::random::<f64>() < std::f64::consts::E.powf(cost_diff*(epoch as f64)* (50.0) / (EPOCHS as f64)) {
-            true
-        } else {
-            false
-        }
-    }
-
-}
-*/
-fn cooling_schedule(epoch: i32, cost_diff: f64) -> bool {
-    if cost_diff > 0.0 {
-        true
-    } else if cost_diff < -2.0 {
-        false
-    } else {
-        let prob : f64;
-        prob = E.powf(cost_diff*50.0*(epoch as f64 / EPOCHS as f64)) - (epoch as f64 / EPOCHS as f64);
-        if rand::random::<f64>() < prob {
-            eprintln!("Prob: {}", prob);
-            true
-        } else {
-            false
-        }
-    }
-}
 
 fn optimize(chain: &mut RepulsionChain, steps: u32) -> f64 {
     let mut last_cost = INFINITY;
@@ -90,7 +52,7 @@ fn optimize(chain: &mut RepulsionChain, steps: u32) -> f64 {
 }
 
 fn main() {
-    let (mut curr_chain, symms, parity) = match args().nth(1) {
+    let (mut curr_chain, _symms, _parity) = match args().nth(1) {
         Some(filename) => {
             let file = File::open(&filename).unwrap_or_else(|_| {
                 eprintln!("Could not open file {}", filename);
@@ -143,7 +105,7 @@ fn main() {
             RepulsionChain::new(
                 trefoil_curve::chain(
                     TREFOIL_CHAIN_SIZE,
-                    3.5,
+                    3.1, // arc length multiplier
                     COST_PARAMS,
                     RETURN_TO_INITIAL_WEIGHT,
                     RATE,
@@ -159,7 +121,7 @@ fn main() {
             JointsParity::Even,
         ),
     };
-    let mut curr_cost = optimize(&mut curr_chain, STEPS);
+    let curr_cost = optimize(&mut curr_chain, STEPS);
     println!("Original cost: {}", curr_cost);
     println!("Approximate original locking angles:");
     let mut prev_trans = Isometry3::identity();
@@ -181,159 +143,7 @@ fn main() {
         prev_trans = joint * curr_chain.spec.origin_to_out();
     }
 
-    let mut steps: Vec<(usize, f64)> = Vec::new();
-
-    let mut change: [i32; 4] = [0, 0, 0, 0];
-    let mut best_cost = curr_cost;
-    let mut best_epoch = 0;
-    let mut best_chain = curr_chain.clone();
-
-    for epoch in 0..EPOCHS {
-
-        let x: u8 = rand::random();
-        let mut angle = if rand::random() {
-            TAU / 16.0
-        } else {
-            -1.0 * TAU / 16.0
-        };
-
-        let mut offset_chain = curr_chain.clone();
-
-        let rand_joint: usize;
-
-        if rand::random::<f64>() > TWO_WEIGHT {
-            rand_joint = (x as usize) % (curr_chain.joints.len() - 2);
-            if rand_joint == 0 {
-                angle = angle * 0.5;
-            }
-            offset_chain.joints[rand_joint] =
-                offset_chain.joints[rand_joint]
-                    * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
-            offset_chain.joints[rand_joint + 1] =
-                offset_chain.joints[rand_joint + 1]
-                    * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -2.0 * angle);
-            offset_chain.joints[rand_joint + 2] =
-                offset_chain.joints[rand_joint + 2]
-                    * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
-        } else {
-            rand_joint = x as usize % (curr_chain.joints.len() - 1);
-            if rand_joint == 0 {
-                angle = angle * 0.5;
-            }
-            offset_chain.joints[rand_joint] =
-                offset_chain.joints[rand_joint]
-                    * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angle);
-            offset_chain.joints[rand_joint + 1] =
-                offset_chain.joints[rand_joint + 1]
-                    * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), -1.0 * angle);
-        }
-
-        let cost = optimize(&mut offset_chain, STEPS);
-        let cost_diff = curr_cost - cost;
-        if cooling_schedule(epoch, cost_diff) {
-            curr_chain = offset_chain;
-            curr_cost = cost;
-            if best_cost > curr_cost {
-                best_cost = curr_cost;
-                best_epoch = epoch;
-                best_chain = curr_chain.clone();
-                eprintln!("New Best: {}", best_cost);
-            }
-            steps.push((rand_joint, (angle * 16.0 / TAU)));
-            if epoch <= EPOCHS / 4 {
-                change[0] += 1;
-            } else {
-                let q: usize = (4.0 * (epoch as f64)/(EPOCHS as f64)).floor() as usize;
-                change[q] = change[q] + 1;
-            }
-            // eprintln!("Changed!");
-            // eprintln!("{} {:+} : {} {:+}", rand_joint, (angle * 16.0 / TAU), cost, cost_diff);
-            eprintln!("Cost after epoch {}: {}", epoch, curr_cost);
-        } else {
-            // eprintln!("Unchanged!");
-            // eprintln!("{} {:+} : {} {:+}", rand_joint, (angle * 16.0 / TAU), cost, cost_diff);
-        }
-
-    }
-
-    // eprintln!("\nFinal steps:");
-    // for &(i, offset) in &steps {
-    //     eprintln!("{} {:+}", i, offset);
-    // }
-
-    // let transforms = curr_chain
-    //     .joints
-    //     .iter()
-    //     .cloned()
-    //     .map(|iso| Transform::from_isometry(iso))
-    //     .collect::<Vec<_>>();
-
-    // let geometry = KnotGeometry {
-    //     joint_spec: curr_chain.spec,
-    //     num_angles: curr_chain.num_angles,
-    //     cost_params: curr_chain.cost_params,
-    //     parity: parity,
-    //     symmetries: symms,
-    //     transforms,
-    // };
-
-    // println!("\nFinal geometry:");
-    // println!("{}", serde_json::to_string_pretty(&geometry).unwrap());
-
-    // println!("\nChanges per Quarter of Total Steps");
-    // println!("{:?}", change);
-
-    println!("\nFinal Cost");
-    println!("{}", curr_cost);
-
-    println!("Approximate locking angles:");
-    let mut prev_trans = Isometry3::identity();
-    for &joint in &curr_chain.joints {
-        let trans_0 = prev_trans;
-        let trans_1 = joint * curr_chain.spec.origin_to_in();
-
-        let axis_0 = trans_0 * Vector3::y_axis().to_superset();
-        let axis_1 = trans_1 * Vector3::y_axis().to_superset();
-
-        let align = UnitQuaternion::rotation_between(&axis_1, &axis_0)
-            .unwrap_or(UnitQuaternion::identity());
-        let aligned_rel_rotation =
-            trans_0.rotation.inverse() * align * trans_1.rotation;
-        let locking_angle = aligned_rel_rotation.angle();
-        let locking_number =
-            locking_angle / (2.0 * PI) * (curr_chain.num_angles as f64);
-        println!("{}", locking_number);
-        prev_trans = joint * curr_chain.spec.origin_to_out();
-    }
-
-    println!("\nBest Found Cost");
-    println!("{} at epoch {}", best_cost, best_epoch);
-
-    println!("Approximate locking angles:");
-    let mut prev_trans = Isometry3::identity();
-    for &joint in &best_chain.joints {
-        let trans_0 = prev_trans;
-        let trans_1 = joint * best_chain.spec.origin_to_in();
-
-        let axis_0 = trans_0 * Vector3::y_axis().to_superset();
-        let axis_1 = trans_1 * Vector3::y_axis().to_superset();
-
-        let align = UnitQuaternion::rotation_between(&axis_1, &axis_0)
-            .unwrap_or(UnitQuaternion::identity());
-        let aligned_rel_rotation =
-            trans_0.rotation.inverse() * align * trans_1.rotation;
-        let locking_angle = aligned_rel_rotation.angle();
-        let locking_number =
-            locking_angle / (2.0 * PI) * (best_chain.num_angles as f64);
-        println!("{}", locking_number);
-        prev_trans = joint * best_chain.spec.origin_to_out();
-    }
-
-    let mut chain = best_chain;
-
-
-
-
+    let mut chain = curr_chain;
     let mut window = Window::new("Continuous Optimization");
     window.set_light(Light::StickToCamera);
 
@@ -536,5 +346,4 @@ fn main() {
             }
         }
     }
-
 }
