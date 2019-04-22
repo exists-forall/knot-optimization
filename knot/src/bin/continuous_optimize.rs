@@ -12,7 +12,7 @@ use std::f64::consts::PI;
 use std::fs::File;
 use std::process::exit;
 
-use glfw::{Action, Key, WindowEvent};
+use kiss3d::event::{Action, Key, WindowEvent};
 use kiss3d::light::Light;
 use kiss3d::window::Window;
 
@@ -123,8 +123,8 @@ fn main() {
     while window.render() {
         for event in window.events().iter() {
             match event.value {
-                WindowEvent::Key(_, _, Action::Release, _) => {}
-                WindowEvent::Key(code, _, _, _) => match code {
+                WindowEvent::Key(_, Action::Release, _) => {}
+                WindowEvent::Key(code, _, _) => match code {
                     Key::Space => {
                         println!("Approximate locking angles:");
                         let mut prev_trans = Isometry3::identity();
@@ -158,7 +158,7 @@ fn main() {
                         chain.cost_params.locking_weight = 0.0;
                         println!("Locking weight disabled");
                     }
-                    Key::Enter => {
+                    Key::Return => {
                         chain.cost_params.locking_weight = COST_PARAMS.locking_weight;
                         println!(
                             "Locking weight enabled: {}",
@@ -173,7 +173,7 @@ fn main() {
                         selected = (selected + chain.joints.len() - 1) % chain.joints.len();
                         println!("Selected {}", selected);
                     }
-                    Key::Equal => {
+                    Key::Equals => {
                         chain.joints[selected] = chain.joints[selected]
                             * UnitQuaternion::from_axis_angle(&Vector3::y_axis(), TAU / 16.0);
                     }

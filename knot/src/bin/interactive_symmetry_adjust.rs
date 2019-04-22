@@ -10,7 +10,7 @@ extern crate serde_json;
 use std::env::args;
 use std::process::exit;
 
-use glfw::{Action, Key, WindowEvent};
+use kiss3d::event::{Action, Key, WindowEvent};
 use kiss3d::camera::ArcBall;
 use kiss3d::light::Light;
 use kiss3d::window::Window;
@@ -90,13 +90,13 @@ fn main() {
     loop {
         for event in window.events().iter() {
             match event.value {
-                WindowEvent::Key(_, _, Action::Release, _) => {}
-                WindowEvent::Key(code, _, _, _) => match code {
+                WindowEvent::Key(_, Action::Release, _) => {}
+                WindowEvent::Key(code, _, _) => match code {
                     Key::Up => adjust.radius += 0.1,
                     Key::Down => adjust.radius -= 0.1,
                     Key::Left => adjust.radial_angle -= 0.1,
                     Key::Right => adjust.radial_angle += 0.1,
-                    Key::Enter => adjust = problem.solve_direct().0,
+                    Key::Return => adjust = problem.solve_direct().0,
                     _ => {}
                 },
                 _ => {}

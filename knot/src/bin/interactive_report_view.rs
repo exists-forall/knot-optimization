@@ -11,7 +11,7 @@ use std::env::args;
 use std::fs::File;
 use std::process::exit;
 
-use glfw::{Action, Key, WindowEvent};
+use kiss3d::event::{Action, Key, WindowEvent};
 use kiss3d::camera::ArcBall;
 use kiss3d::light::Light;
 use kiss3d::scene::SceneNode;
@@ -178,8 +178,8 @@ fn main() {
     while reports_view.render() {
         for event in reports_view.window.events().iter() {
             match event.value {
-                WindowEvent::Key(_, _, Action::Release, _) => {}
-                WindowEvent::Key(code, _, _, _) => match code {
+                WindowEvent::Key(_, Action::Release, _) => {}
+                WindowEvent::Key(code, _, _) => match code {
                     Key::Left => {
                         if report_i > 0 {
                             report_i -= 1;
