@@ -43,10 +43,6 @@
       - Angle (30 to 60 degrees?)
   - Start by running a few b-splines.
 
-
-- Begin tech report!
-
-
 - Remember that the number of components need to be at least 12 * number of rotations around the center
   - Implement a heuristic based on that
   - Ensure that bending angles between points on the knot is more or less pi/6 degrees
@@ -66,3 +62,15 @@ We can try to look at initial optimizations and their corresponding parities and
 
 Is it possible that every single angle is within some constant number of moves from a good solution?
  - Create some metric for deviation. Probably just number of "moves".
+
+ Change distance cost to be just distance between vertices.
+ - 0.5mm apart is the "visibility threshold". Error should increase quadratically from there.
+  - want to calculate axis cost with polyline as well.
+We want 0.001 to be the standardized "invisible" error value.
+all costs should increase quadratically
+
+Try chinese button knot!
+
+Try optimization by starting with standard optimization and slowly increase locking angle cost.
+
+Go back to when we originally discretized the angles and see if we find angles close to halfway between two angles.
