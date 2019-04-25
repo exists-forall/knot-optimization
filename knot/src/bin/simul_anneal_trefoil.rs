@@ -1,5 +1,5 @@
 extern crate alga;
-extern crate glfw;
+
 extern crate kiss3d;
 extern crate nalgebra;
 extern crate serde;
