@@ -66,18 +66,24 @@ fn plot_2d(spline: &bspline::BSpline<Point>, plot: &mut [u8], plot_dim: (usize, 
     }
 }
 
+
+
 /// Plot a simple 2D cubic B-spline
 fn plot_cubic() {
     let radius : f32 = 1.0;
-    let sep : f32 = 25.0;
+    let sep : f32 = 22.0;
     let num : f32 = 0.0174;
     let points = vec![Point::new(radius * (num * -(sep)).cos(), radius * (num * -(sep)).sin()),
-                    Point::new(radius * (num * (sep + 120.0)).cos(), radius * (num * (sep + 120.0)).sin()),
-                    Point::new(radius * (num * -(sep + 240.0)).cos(), radius * (num * -(sep + 240.0)).sin()),
                     Point::new(radius * (num * (sep)).cos(), radius * (num * (sep)).sin()),
                     Point::new(radius * (num * -(sep + 120.0)).cos(), radius * (num * -(sep + 120.0)).sin()),
-                    Point::new(radius * (num * (sep + 240.0)).cos(), radius * (num * (sep + 240.0)).sin())];
-    let knots = vec![0.5, 0.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 5.0, 5.0];
+                    Point::new(radius * (num * (sep + 240.0)).cos(), radius * (num * (sep + 240.0)).sin()),
+                    Point::new(radius * (num * -(sep + 240.0)).cos(), radius * (num * -(sep + 240.0)).sin()),
+                    Point::new(radius * (num * (sep + 120.0)).cos(), radius * (num * (sep + 120.0)).sin()),
+                    Point::new(radius * (num * -(sep)).cos(), radius * (num * -(sep)).sin()),
+                    Point::new(radius * (num * (sep)).cos(), radius * (num * (sep)).sin()),
+                    Point::new(radius * (num * -(sep + 120.0)).cos(), radius * (num * -(sep + 120.0)).sin())];
+
+    let knots = vec![-2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
     let degree = 3;
 
     let plot_dim = (1440, 1080);
@@ -85,6 +91,8 @@ fn plot_cubic() {
     let offset = (2.0, 2.0);
 
     let mut plot: Vec<_> = iter::repeat(255u8).take(plot_dim.0 * plot_dim.1 * 3).collect();
+
+
 
     println!("Plotting Cubic B-spline with:\n\tpoints = {:?}\n\tknots = {:?}",
              points, knots);
