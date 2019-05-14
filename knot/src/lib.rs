@@ -2,6 +2,8 @@ extern crate alga;
 extern crate nalgebra;
 extern crate rand;
 extern crate serde;
+extern crate bspline;
+extern crate image;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
