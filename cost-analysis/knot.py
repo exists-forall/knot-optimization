@@ -26,6 +26,16 @@ class Knot:
             if current.angles == self.angles:
                 return True
         return False
+
+    def within_one(self, other_knot):
+        if self.angles == other_knot.angles:
+            return False
+        for i in range(len(self.angles)):
+            diff = abs(self.angles[i] - other_knot.angles[i]) % 16
+            if diff != 0 and diff != 1 and diff != 15:
+                return False
+        return True
+
 # Set of knots with some functionality for identifying other knots.
 class KnotSet:
     def __init__(self, json_file = None):

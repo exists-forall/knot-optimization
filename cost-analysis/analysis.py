@@ -85,3 +85,21 @@ def distance_from_good():
                     min_dist = min(distance(full_knot, good_knot, full_set), min_dist)
                 if min_dist != 1000000000:
                     distances.append(min_dist)
+
+def within_search():
+    full_set = knot.KnotSet("trefoil_statistics/all_knots.json")
+    good_set = knot.KnotSet("trefoil_statistics/top_100.json")
+
+    for good_knot in good_set.one_d_knot_list():
+        good_count = 0
+        for other_knot in good_set.one_d_knot_list():
+            if good_knot.within_one(other_knot):
+                good_count += 1
+
+        full_count = 0
+        for other_knot in full_set.one_d_knot_list():
+            if good_knot.within_one(other_knot):
+                full_count += 1
+        print("Good neighbors: " + str(good_count) + " Okay neighbors: " + str(full_count))
+
+within_search()

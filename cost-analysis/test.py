@@ -1,5 +1,4 @@
 import knot
-import grapher
 import analysis
 
 
@@ -68,4 +67,7 @@ def same_parity_graph_test():
     spec = grapher.same_parity_graph(full_set, 50, 8, 3)
     grapher.graph_from_data(spec, "Parity 8, Edges 3", "50 Best Knots of Parity 8, d=3.")
 
-cost_count()
+def within_one_test():
+    knot_1 = knot.Knot([1, 3, 0, 5], 0, 0, 0)
+    knot_2 = knot.Knot([2, 2, 15, 5], 0, 0, 0)
+    print(knot_1.within_one(knot_2))
