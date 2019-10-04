@@ -20,6 +20,7 @@ pub fn symmetries_with_skip(count: u32, skip: u32) -> impl Iterator<Item = UnitQ
         &Vector3::z_axis(),
         2.0 * PI * (skip as f64) / (count as f64),
     );
+    
     let mut frame_up = UnitQuaternion::identity();
     let mut is_frame_down = false;
     (0..(2 * count)).map(move |_| {

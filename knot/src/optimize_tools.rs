@@ -127,6 +127,7 @@ impl Chain {
 
             let pre_cost = self.cost_between(&pre_joint, &pre_leg, &joint, &Leg::Incoming);
             let post_cost = self.cost_between(&joint, &Leg::Outgoing, &post_joint, &post_leg);
+
             result += pre_cost + post_cost;
             pre_joint = joint;
             pre_leg = Leg::Outgoing;

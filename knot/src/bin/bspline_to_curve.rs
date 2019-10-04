@@ -5,7 +5,7 @@ use std::ops::{Mul, Add};
 use std::iter;
 
 #[derive(Copy, Clone, Debug)]
-struct Point {
+pub struct Point {
     x: f32,
     y: f32,
 }
