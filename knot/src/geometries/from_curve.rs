@@ -1,5 +1,6 @@
 use nalgebra::{Isometry3, Matrix3, Point3, Rotation3, Translation3, UnitQuaternion};
 
+#[allow(dead_code)]
 
 pub fn from_curve<F: Fn(f64) -> Point3<f64>>(
     count: usize,

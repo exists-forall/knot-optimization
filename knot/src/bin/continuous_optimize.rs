@@ -21,10 +21,11 @@ use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector3};
 use knot::optimize_tools::{Chain, Leg, PhantomJoint, RepulsionChain};
 use knot::defaults;
 use knot::defaults::continuous_optimization::{
-    COST_PARAMS, CURVE_9_40_CHAIN_SIZE, MAX_REPULSION_STRENGTH, RATE, REPULSION,
+    COST_PARAMS, MAX_REPULSION_STRENGTH, RATE, REPULSION,
     REPULSION_EXPONENT, REPULSION_STRENGTH, RETURN_TO_INITIAL_WEIGHT,
 };
 use knot::geometries::curve_9_40;
+use knot::geometries::trefoil_curve;
 use knot::isometry_adjust;
 use knot::joint::{at_angles, RelativeJoint};
 use knot::report::{KnotGeometry, Transform};
@@ -82,8 +83,7 @@ fn main() {
             )
         }
         None => RepulsionChain::new(
-            curve_9_40::chain(
-                CURVE_9_40_CHAIN_SIZE,
+            trefoil_curve::chain(
                 0.7,
                 COST_PARAMS,
                 RETURN_TO_INITIAL_WEIGHT,

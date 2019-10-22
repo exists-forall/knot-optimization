@@ -4,8 +4,32 @@ use alga::general::SubsetOf;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector3};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
+use std::ops::{Mul, Add};
 use report::JointsParity;
+
+#[derive(Copy, Clone, Debug)]
+pub struct Point3 {
+    x: f32,
+    y: f32,
+    z: f32
+}
+impl Point3 {
+    pub fn new(x: f32, y: f32, z: f32) -> Point3 {
+        Point3 { x: x, y: y, z: z }
+    }
+}
+impl Mul<f32> for Point3 {
+    type Output = Point3;
+    fn mul(self, rhs: f32) -> Point3 {
+        Point3 { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs }
+    }
+}
+impl Add for Point3 {
+    type Output = Point3;
+    fn add(self, rhs: Point3) -> Point3 {
+        Point3 { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z }
+    }
+}
 
 /// A specification of the geometry of a joint. A joint is a geometric figure in 3D space consisting
 /// of three points: an "in" point, a "midpoint," and an "out" point. A joint has a standard

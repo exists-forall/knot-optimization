@@ -10,18 +10,26 @@ use defaults;
 use isometry_adjust as iso_adj;
 use symmetry::adjacent_symmetry;
 
-use geometries::from_curve::from_curve_natural_parameterize;
+use geometries::from_spline::from_spline;
+use geometries::trefoil_spline::generate_trefoil;
 
 const TAU: f64 = 2.0 * PI;
 const HEIGHT: f64 = 1.0;
 
 pub fn chain(
-    chain_size: usize,
     scale: f64,
     cost_params: CostParams,
     return_to_initial_weight: f64,
     descent_rate: f64,
 ) -> Chain {
+    let spline_iter = from_spline(
+        2.5, // arc length step
+        generate_trefoil(),  // spline
+        3, // symmetry
+        scale,  // scale
+    );
+    let chain_size = spline_iter.1;
+
     Chain::new(
         // spec
         defaults::joint_spec(),
@@ -48,18 +56,6 @@ pub fn chain(
         // steps
         iso_adj::Steps::new_uniform(0.000001),
         // joints
-        from_curve_natural_parameterize(
-            2.7,  // arc length step
-            0.005, // dt
-            0.0,  // start
-            TAU / 6.0,  // end
-            |t| {
-                Point3::new(
-                    scale * (t.sin() + 2.0 * (2.0 * t).sin()),
-                    scale * (t.cos() - 2.0 * (2.0 * t).cos()),
-                    -scale * HEIGHT * (3.0 * t).sin(),
-                )
-            },
-        ).collect(),
+        spline_iter.2.collect(),
     )
 }
