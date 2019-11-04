@@ -2,7 +2,6 @@ use std::f64::consts::PI;
 
 use alga::general::SubsetOf;
 use nalgebra::{UnitQuaternion, Vector3};
-use nalgebra::Point3;
 
 use optimize_tools::{Chain, Leg, PhantomJoint};
 use cost::CostParams;
@@ -17,18 +16,18 @@ const TAU: f64 = 2.0 * PI;
 const HEIGHT: f64 = 1.0;
 
 pub fn chain(
-    scale: f64,
+    scale: f32,
     cost_params: CostParams,
     return_to_initial_weight: f64,
     descent_rate: f64,
 ) -> Chain {
     let spline_iter = from_spline(
         2.5, // arc length step
-        generate_trefoil(),  // spline
+        &generate_trefoil(),  // spline
         3, // symmetry
         scale,  // scale
     );
-    let chain_size = spline_iter.1;
+    let chain_size = spline_iter.0;
 
     Chain::new(
         // spec
@@ -56,6 +55,6 @@ pub fn chain(
         // steps
         iso_adj::Steps::new_uniform(0.000001),
         // joints
-        spline_iter.2.collect(),
+        spline_iter.1.collect(),
     )
 }

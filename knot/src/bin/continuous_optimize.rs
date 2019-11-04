@@ -84,7 +84,7 @@ fn main() {
         }
         None => RepulsionChain::new(
             trefoil_curve::chain(
-                0.7,
+                1.0,
                 COST_PARAMS,
                 RETURN_TO_INITIAL_WEIGHT,
                 RATE,

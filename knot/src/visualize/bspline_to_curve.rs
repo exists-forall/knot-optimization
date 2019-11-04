@@ -109,8 +109,9 @@ fn plot_cubic() {
     }
 }
 
-fn main() {
-    let divider: String = iter::repeat('-').take(80).collect();
-    println!("{}\n\n{}", divider, divider);
-    plot_cubic();
-}
+
+// fn main() {
+//     let divider: String = iter::repeat('-').take(80).collect();
+//     println!("{}\n\n{}", divider, divider);
+//     plot_cubic();
+// }

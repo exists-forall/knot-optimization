@@ -1,35 +1,60 @@
 use std::f64::consts::PI;
 
 use alga::general::SubsetOf;
-use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector3};
+use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector3, Point3};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::ops::{Mul, Add};
+use std::ops::{Add, Div, Mul, Sub};
 use report::JointsParity;
 
 #[derive(Copy, Clone, Debug)]
-pub struct Point3 {
-    x: f32,
-    y: f32,
-    z: f32
+pub struct Point {
+    x: f64,
+    y: f64,
+    z: f64
 }
-impl Point3 {
-    pub fn new(x: f32, y: f32, z: f32) -> Point3 {
-        Point3 { x: x, y: y, z: z }
+impl Point {
+    pub fn new(x: f64, y: f64, z: f64) -> Point {
+        Point { x: x, y: y, z: z }
     }
 }
-impl Mul<f32> for Point3 {
-    type Output = Point3;
-    fn mul(self, rhs: f32) -> Point3 {
-        Point3 { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs }
+impl Mul<f64> for Point {
+    type Output = Point;
+    fn mul(self, rhs: f64) -> Point {
+        Point { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs }
     }
 }
-impl Add for Point3 {
-    type Output = Point3;
-    fn add(self, rhs: Point3) -> Point3 {
-        Point3 { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z }
+impl Mul<f32> for Point {
+    type Output = Point;
+    fn mul(self, rhs: f32) -> Point {
+        let newrhs = rhs as f64;
+        Point { x: self.x * newrhs, y: self.y * newrhs, z: self.z * newrhs }
     }
 }
+impl Div<f64> for Point {
+    type Output = Point;
+    fn div(self, rhs: f64) -> Point {
+        Point { x: self.x / rhs, y: self.y / rhs, z: self.z / rhs }
+    }
+}
+impl Add for Point {
+    type Output = Point;
+    fn add(self, rhs: Point) -> Point {
+        Point { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z }
+    }
+}
+impl Sub for Point {
+    type Output = Point;
+    fn sub(self, rhs: Point) -> Point {
+        Point { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z }
+    }
+}
+impl Point {
+    pub fn convert(self) -> Point3<f64> {
+        Point3::new(self.x as f64, self.y as f64, self.z as f64)
+    }
+}
+
 
 /// A specification of the geometry of a joint. A joint is a geometric figure in 3D space consisting
 /// of three points: an "in" point, a "midpoint," and an "out" point. A joint has a standard
