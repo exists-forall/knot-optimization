@@ -1,3 +1,4 @@
+extern crate bspline;
 use std::f64::consts::PI;
 
 use alga::general::SubsetOf;
@@ -12,9 +13,6 @@ use symmetry::adjacent_symmetry;
 use geometries::from_spline::from_spline;
 use geometries::trefoil_spline::generate_trefoil;
 
-const TAU: f64 = 2.0 * PI;
-const HEIGHT: f64 = 1.0;
-
 pub fn chain(
     scale: f32,
     cost_params: CostParams,
@@ -22,8 +20,8 @@ pub fn chain(
     descent_rate: f64,
 ) -> Chain {
     let spline_iter = from_spline(
-        2.5, // arc length step
-        &generate_trefoil(),  // spline
+        2.2, // arc length step
+        generate_trefoil,
         3, // symmetry
         scale,  // scale
     );
@@ -42,7 +40,7 @@ pub fn chain(
         },
         // post-phantom
         PhantomJoint {
-            symmetry: adjacent_symmetry(3, 2).to_superset(),
+            symmetry: adjacent_symmetry(3, 4).to_superset(),
             index: chain_size - 1,
             leg: Leg::Outgoing,
         },

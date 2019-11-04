@@ -3,9 +3,9 @@ use joint::Point;
 extern crate bspline;
 
 
-pub fn from_spline<F: Fn(f64) -> Point3<f64>>(
+pub fn from_spline<F: Fn() -> bspline::BSpline<Point>> (
     arc_len_step: f32,
-    spline: &bspline::BSpline<Point>,
+    spline_gen: F,
     symmetry: u32,
     scale: f32,
 ) -> (usize, impl Iterator<Item = Isometry3<f64>>) {
@@ -13,13 +13,14 @@ pub fn from_spline<F: Fn(f64) -> Point3<f64>>(
     // Create iterator of points on one "leg" of knot that are arc length (in + out) away from
     // each other.
     let dt = 0.01;
+    let spline = spline_gen();
     let t_range = spline.knot_domain();
     let mut arc_len_since_last = arc_len_step;
-    let mut t = t_range.0;
-    let mut end = (t_range.1 / (symmetry as f32)) as usize;
+    let mut t = t_range.0 + dt;
+    let end = t_range.1 / (symmetry as f32);
     let iso_iterator = (0..)
         .map(move |_| {
-            while t <= end as f32 {
+            while t + dt <= end as f32 {
                 let f_t_spline = spline.point(t)*scale;
                 let f_plus_spline = spline.point(t + dt)*scale;
                 let f_minus_spline = spline.point(t - dt)*scale;
@@ -50,5 +51,7 @@ pub fn from_spline<F: Fn(f64) -> Point3<f64>>(
             None
         }).take_while(|p| p.is_some())
         .map(|p| p.unwrap());
-        (end, iso_iterator)
+        let iterator_clone = iso_iterator.clone();
+        let joints = iterator_clone.count();
+        (joints, iso_iterator)
 }

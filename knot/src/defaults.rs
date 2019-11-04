@@ -7,9 +7,9 @@ use joint::JointSpec;
 use symmetry_adjust::{OptimizationParams, Vars};
 
 pub const COST_PARAMS: CostParams = CostParams {
-    dist_weight: 5.0,
+    dist_weight: 4.5,
     axis_weight: 1.0,
-    locking_weight: 1.0,
+    locking_weight: 1.4,
     thresholds: Thresholds {
         dist_for_axis: 4.0,
         axis_for_locking: 0.2,
@@ -53,7 +53,7 @@ pub mod continuous_optimization {
 
     /// Cost parameters for gradient descent, different than cost parameters for exhaustive search!
     pub const COST_PARAMS: CostParams = CostParams {
-        dist_weight: 1.0,
+        dist_weight: 4.5,
         axis_weight: 3.0,
         locking_weight: 0.17,
         thresholds: Thresholds {

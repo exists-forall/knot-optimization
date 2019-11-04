@@ -24,12 +24,11 @@ use knot::defaults::continuous_optimization::{
     COST_PARAMS, MAX_REPULSION_STRENGTH, RATE, REPULSION,
     REPULSION_EXPONENT, REPULSION_STRENGTH, RETURN_TO_INITIAL_WEIGHT,
 };
-use knot::geometries::curve_9_40;
 use knot::geometries::trefoil_curve;
 use knot::isometry_adjust;
 use knot::joint::{at_angles, RelativeJoint};
 use knot::report::{KnotGeometry, Transform};
-use knot::symmetry::symmetries;
+use knot::symmetry::{symmetries, symmetries_with_skip};
 use knot::visualize::joint_render::{add_joints, Style};
 
 const TAU: f64 = 2.0 * PI;
@@ -84,7 +83,7 @@ fn main() {
         }
         None => RepulsionChain::new(
             trefoil_curve::chain(
-                1.0,
+                1.3, // scale
                 COST_PARAMS,
                 RETURN_TO_INITIAL_WEIGHT,
                 RATE,
@@ -100,10 +99,10 @@ fn main() {
     window.set_light(Light::StickToCamera);
 
     let mut nodes = add_joints(
-        window.scene_mut(),
-        &chain.spec,
-        chain.num_angles as u16,
-        chain.joints.len() * 6
+        window.scene_mut(), // Scene
+        &chain.spec, // JointSpec
+        chain.num_angles as u16, // Number of angles
+        chain.joints.len() * 6 // Number of joints
         // debug:
         + if DEBUG_ANGLES {
             chain.joints.len()
@@ -244,7 +243,7 @@ fn main() {
         {
             let mut i = 0;
             let mut first = true;
-            for sym in symmetries(3) {
+            for sym in symmetries_with_skip(3, 2) {
                 for &joint in &chain.joints {
                     if !first {
                         nodes[i].set_color(0.5, 0.5, 0.5);
