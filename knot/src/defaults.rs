@@ -62,6 +62,17 @@ pub mod continuous_optimization {
         },
     };
 
+    /// Cost parameters assuming no locking angles.
+    pub const CONTINUOUS_PARAMS: CostParams = CostParams {
+        dist_weight: 4.5,
+        axis_weight: 3.0,
+        locking_weight: 0,
+        thresholds: Thresholds {
+            dist_for_axis: INFINITY,
+            axis_for_locking: INFINITY,
+        },
+    };
+
     pub const RATE: f64 = 0.02;
 
     /// Empirically-determined number of steps for gradient descent to stabilize

@@ -13,16 +13,18 @@ use symmetry::adjacent_symmetry;
 use geometries::from_spline::from_spline;
 use geometries::trefoil_spline::generate_trefoil;
 
-pub fn chain(
+pub fn chain<F: Fn() -> bspline::BSpline<Point>>(
     scale: f32,
     cost_params: CostParams,
     return_to_initial_weight: f64,
     descent_rate: f64,
+    bspline_generator: F,
+    sym_number: u32,
 ) -> Chain {
     let spline_iter = from_spline(
         2.2, // arc length step
-        generate_trefoil, // bspline generator
-        3, // symmetry
+        bspline_generator, // bspline geneator
+        sym_number, // symmetry
         scale,  // scale
     );
     let chain_size = spline_iter.0;
@@ -34,7 +36,7 @@ pub fn chain(
         defaults::NUM_ANGLES,
         // pre-phantom
         PhantomJoint {
-            symmetry: UnitQuaternion::from_axis_angle(&Vector3::x_axis(), PI).to_superset(),
+            symmetry: UnitQuaternion::from_axis_angle(&Vector3::x_a32xis(), PI).to_superset(),
             index: 0,
             leg: Leg::Incoming,
         },
