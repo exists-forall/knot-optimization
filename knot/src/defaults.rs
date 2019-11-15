@@ -48,6 +48,10 @@ pub fn joint_spec() -> JointSpec {
     JointSpec::new(1.0, 1.0, PI / 6.0, 1.25)
 }
 
+pub fn cyl_spec() -> JointSpec {
+    JointSpec::new(0.05, 0.05, 0.0, 1.25)
+}
+
 pub mod continuous_optimization {
     use super::*;
 
@@ -66,7 +70,7 @@ pub mod continuous_optimization {
     pub const CONTINUOUS_PARAMS: CostParams = CostParams {
         dist_weight: 4.5,
         axis_weight: 3.0,
-        locking_weight: 0,
+        locking_weight: 0.0,
         thresholds: Thresholds {
             dist_for_axis: INFINITY,
             axis_for_locking: INFINITY,

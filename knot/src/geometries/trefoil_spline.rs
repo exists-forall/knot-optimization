@@ -8,7 +8,7 @@ pub fn generate_trefoil() -> bspline::BSpline<Point> {
     let radius : f64 = 5.0;
 
     // Separation angle can be between 1 and 30 degrees.
-    let sep : f64 = 21.0;
+    let sep : f64 = 20.0;
 
     // Just a constant.
     let num : f64 = 0.0174;

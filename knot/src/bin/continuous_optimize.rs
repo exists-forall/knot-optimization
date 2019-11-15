@@ -83,10 +83,11 @@ fn main() {
         }
         None => RepulsionChain::new(
             trefoil_curve::chain(
-                1.6, // scale
+                1.5, // scale
                 COST_PARAMS,
                 RETURN_TO_INITIAL_WEIGHT,
                 RATE,
+                defaults::joint_spec(),
             ),
             symmetries(3).map(|quat| quat.to_superset()).collect(),
             REPULSION_EXPONENT,

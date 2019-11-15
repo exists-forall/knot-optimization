@@ -8,10 +8,10 @@ use optimize_tools::{Chain, Leg, PhantomJoint};
 use cost::CostParams;
 use defaults;
 use isometry_adjust as iso_adj;
+use joint::{Point, JointSpec};
 use symmetry::adjacent_symmetry;
 
 use geometries::from_spline::from_spline;
-use geometries::trefoil_spline::generate_trefoil;
 
 pub fn chain<F: Fn() -> bspline::BSpline<Point>>(
     scale: f32,
@@ -20,9 +20,11 @@ pub fn chain<F: Fn() -> bspline::BSpline<Point>>(
     descent_rate: f64,
     bspline_generator: F,
     sym_number: u32,
+    spec: JointSpec,
 ) -> Chain {
+    let arclen = 1.1*(spec.dist_in() + spec.dist_out());
     let spline_iter = from_spline(
-        2.2, // arc length step
+        arclen as f32, // arc length step
         bspline_generator, // bspline geneator
         sym_number, // symmetry
         scale,  // scale
@@ -31,12 +33,12 @@ pub fn chain<F: Fn() -> bspline::BSpline<Point>>(
 
     Chain::new(
         // spec
-        defaults::joint_spec(),
+        spec,
         // num angles
         defaults::NUM_ANGLES,
         // pre-phantom
         PhantomJoint {
-            symmetry: UnitQuaternion::from_axis_angle(&Vector3::x_a32xis(), PI).to_superset(),
+            symmetry: UnitQuaternion::from_axis_angle(&Vector3::x_axis(), PI).to_superset(),
             index: 0,
             leg: Leg::Incoming,
         },

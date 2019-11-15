@@ -4,10 +4,11 @@ use std::f64::consts::PI;
 use alga::general::SubsetOf;
 use nalgebra::{UnitQuaternion, Vector3};
 
-use optimize_tools::{Chain, Leg, PhantomJoint};
-use cost::CostParams;
 use defaults;
+use cost::CostParams;
 use isometry_adjust as iso_adj;
+use joint::JointSpec;
+use optimize_tools::{Chain, Leg, PhantomJoint};
 use symmetry::adjacent_symmetry;
 
 use geometries::from_spline::from_spline;
@@ -18,9 +19,11 @@ pub fn chain(
     cost_params: CostParams,
     return_to_initial_weight: f64,
     descent_rate: f64,
+    spec: JointSpec,
 ) -> Chain {
+    let arclen = 1.1*(spec.dist_in() + spec.dist_out());
     let spline_iter = from_spline(
-        2.2, // arc length step
+        arclen as f32, // arc length step
         generate_trefoil, // bspline generator
         3, // symmetry
         scale,  // scale
@@ -29,7 +32,7 @@ pub fn chain(
 
     Chain::new(
         // spec
-        defaults::joint_spec(),
+        spec,
         // num angles
         defaults::NUM_ANGLES,
         // pre-phantom
