@@ -5,26 +5,26 @@ use joint::Point;
 pub fn generate_trefoil() -> bspline::BSpline<Point> {
 
     // Radius can be between 1 and 20.
-    let radius : f64 = 5.0;
+    let radius : f64 = 2.0;
 
     // Separation angle can be between 1 and 30 degrees.
     let sep : f64 = 20.0;
 
-    // Just a constant.
+    // Degrees to radians: pi/180.
     let num : f64 = 0.0174;
 
     // Height can be between 1 and 9.
-    let height : f64 = 3.0;
+    let height : f64 = 2.0;
 
-    let points = vec![Point::new(radius * (num * -(sep)).cos(), radius * (num * -(sep)).sin(), height),
-                    Point::new(radius * (num * (sep)).cos(), radius * (num * (sep)).sin(), -height),
-                    Point::new(radius * (num * -(sep + 120.0)).cos(), radius * (num * -(sep + 120.0)).sin(), height),
-                    Point::new(radius * (num * (sep + 240.0)).cos(), radius * (num * (sep + 240.0)).sin(), -height),
-                    Point::new(radius * (num * -(sep + 240.0)).cos(), radius * (num * -(sep + 240.0)).sin(), height),
-                    Point::new(radius * (num * (sep + 120.0)).cos(), radius * (num * (sep + 120.0)).sin(), -height),
-                    Point::new(radius * (num * -(sep)).cos(), radius * (num * -(sep)).sin(), height),
-                    Point::new(radius * (num * (sep)).cos(), radius * (num * (sep)).sin(), -height),
-                    Point::new(radius * (num * -(sep + 120.0)).cos(), radius * (num * -(sep + 120.0)).sin(), height)];
+    let points = vec![Point::new(radius * ((num * -(sep)).cos()), radius * ((num * -(sep)).sin()), height),
+                    Point::new(radius * ((num * (sep)).cos()), radius * ((num * (sep)).sin()), -height),
+                    Point::new(radius * ((num * -(sep + 120.0)).cos()), radius * ((num * -(sep + 120.0)).sin()), height),
+                    Point::new(radius * ((num * (sep + 240.0)).cos()), radius * ((num * (sep + 240.0)).sin()), -height),
+                    Point::new(radius * ((num * -(sep + 240.0)).cos()), radius * ((num * -(sep + 240.0)).sin()), height),
+                    Point::new(radius * ((num * (sep + 120.0)).cos()), radius * ((num * (sep + 120.0)).sin()), -height),
+                    Point::new(radius * ((num * -(sep)).cos()), radius * ((num * -(sep)).sin()), height),
+                    Point::new(radius * ((num * (sep)).cos()), radius * ((num * (sep)).sin()), -height),
+                    Point::new(radius * ((num * -(sep + 120.0)).cos()), radius * ((num * -(sep + 120.0)).sin()), height)];
 
     let knots = vec![-2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
     let degree = 3;

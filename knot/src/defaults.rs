@@ -49,7 +49,22 @@ pub fn joint_spec() -> JointSpec {
 }
 
 pub fn cyl_spec() -> JointSpec {
-    JointSpec::new(0.05, 0.05, 0.0, 1.25)
+    JointSpec::new(1.0, 1.0, 0.0, 1.25)
+}
+
+pub mod curve_visualize {
+    use super::*;
+
+    // Degenerate parameters that allow us to trace the curve.
+    pub const VISUALIZE_PARAMS: CostParams = CostParams {
+        dist_weight: 0.0,
+        axis_weight: 0.0,
+        locking_weight: 1.4,
+        thresholds: Thresholds {
+            dist_for_axis: INFINITY,
+            axis_for_locking: INFINITY,
+        },
+    };
 }
 
 pub mod continuous_optimization {
@@ -76,6 +91,7 @@ pub mod continuous_optimization {
             axis_for_locking: INFINITY,
         },
     };
+
 
     pub const RATE: f64 = 0.02;
 

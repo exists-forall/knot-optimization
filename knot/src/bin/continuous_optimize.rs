@@ -83,7 +83,7 @@ fn main() {
         }
         None => RepulsionChain::new(
             trefoil_curve::chain(
-                1.5, // scale
+                3.5, // scale
                 COST_PARAMS,
                 RETURN_TO_INITIAL_WEIGHT,
                 RATE,
@@ -102,7 +102,7 @@ fn main() {
     let mut nodes = add_joints(
         window.scene_mut(), // Scene
         &chain.spec, // JointSpec
-        chain.num_angles as u16, // Number of angles
+        16 as u16, // Number of angles
         chain.joints.len() * 6 // Number of joints
         // debug:
         + if DEBUG_ANGLES {
