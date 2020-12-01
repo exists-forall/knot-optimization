@@ -14,15 +14,15 @@ Required Software:
 2. Pull this repository.
 
 Designating Your Own Knot:
-3. Create a [bspline](https://en.wikipedia.org/wiki/B-spline) for the knot you'd like to model. Your knot should be symmetrical, and your bspline should only map
+1. Create a [bspline](https://en.wikipedia.org/wiki/B-spline) for the knot you'd like to model. Your knot should be symmetrical, and your bspline should only map
 one segment of the knot. For example, if you want to create a trefoil knot that
 is comprised of three symmetrical components, your bspline should only contain
 one third of the trefoil knot.
-4. Head over to ~/knot_optimization/knot/src/geometries/custom_spline.rs and input your bspline, following the comments. You'll need the bspline's degree and control points. If you have parameters, there are comments for how to use those.
-5. Go into ~/knot_optimization/knot/src/bin/visualize_curve.rs and input the knot's symmetry accordingly.
-6. To view the curve, navigate into ~/knot-optimization/knot, and run the command
+2. Head over to ~/knot_optimization/knot/src/geometries/custom_spline.rs and input your bspline, following the comments. You'll need the bspline's degree and control points. If you have parameters, there are comments for how to use those.
+3. Go into ~/knot_optimization/knot/src/bin/visualize_curve.rs and input the knot's symmetry accordingly.
+4. To view the curve, navigate into ~/knot-optimization/knot, and run the command
 ``cargo run --bin visualize_curve --release``
-7. Using this visualization, adjust the value of scale to increase or decrease the size of the knot
+5. Using this visualization, adjust the value of scale to increase or decrease the size of the knot
 as you see fit. Keep the following in mind:
     1. Remember that we don't want the pieces to be too close together. The radius of the pieces in the
     visualization is the same as the radius of the joints; if the pieces are forced to be too close they
@@ -32,7 +32,7 @@ as you see fit. Keep the following in mind:
     3. Making knots at a larger scale comes at a clear tradeoff: the larger the knot is, the more pieces
     it will require to be assembled. This also comes at an efficiency cost, but for reasonably-sized
     knots this is relatively negligible.
-8. If you'd like to interact with your knot, you can run the command
+6. If you'd like to interact with your knot, you can run the command
 ``cargo run --bin continuous_optimization --release`` from ~/knot-optimization/knot.
 This will display your knot in a screen, constructed with our joints but with no
 locking angle constraint - this means that your components will behave as if they
