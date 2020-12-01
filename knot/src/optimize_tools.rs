@@ -241,6 +241,7 @@ impl Chain {
     }
 }
 
+
 #[derive(Clone, Debug)]
 pub struct RepulsionChain {
     pub chain: Chain,

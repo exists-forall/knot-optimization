@@ -45,7 +45,7 @@ impl<T> CollisionGrid<T> {
     }
 
     fn bounds_indices(&self, bounds: Bounds) -> RangeInclusive<i32> {
-        (self.coord_index(bounds.min)..=self.coord_index(bounds.max))
+        self.coord_index(bounds.min)..=self.coord_index(bounds.max)
     }
 
     pub fn add(&mut self, collider: &T)

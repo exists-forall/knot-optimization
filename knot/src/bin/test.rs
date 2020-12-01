@@ -8,7 +8,7 @@ fn cylindrical() {
     visualize_curve::visualize_bspline(
         generate_trefoil,
         3, // sym
-        3.0, // scale
+        5.0, // scale
     );
 }
 

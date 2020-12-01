@@ -1,6 +1,16 @@
-use nalgebra::{Isometry3, Matrix3, Rotation3, Translation3, UnitQuaternion};
-use joint::Point;
 extern crate bspline;
+use std::f64::consts::PI;
+use alga::general::SubsetOf;
+use defaults;
+use cost::CostParams;
+use isometry_adjust as iso_adj;
+use joint::JointSpec;
+use optimize_tools::{Chain, Leg, PhantomJoint};
+use symmetry::adjacent_symmetry;
+
+use nalgebra::{Isometry3, Matrix3, Rotation3, Translation3,
+    UnitQuaternion, Vector3};
+use joint::Point;
 
 
 pub fn from_spline<F: Fn() -> bspline::BSpline<Point>> (
@@ -54,4 +64,52 @@ pub fn from_spline<F: Fn() -> bspline::BSpline<Point>> (
         let iterator_clone = iso_iterator.clone();
         let joints = iterator_clone.count();
         (joints, iso_iterator)
+}
+
+pub fn generic_chain<F: Fn() -> bspline::BSpline<Point>>(
+    scale: f32,
+    cost_params: CostParams,
+    return_to_initial_weight: f64,
+    descent_rate: f64,
+    spec: JointSpec,
+    spline_gen: F,
+    knot_sym: u32
+) -> Chain {
+    let arclen = 1.1*(spec.dist_in() + spec.dist_out());
+    let spline_iter = from_spline(
+        arclen as f32, // arc length step
+        spline_gen, // bspline generator
+        knot_sym, // symmetry
+        scale,  // scale
+    );
+    let chain_size = spline_iter.0;
+
+    Chain::new(
+        // spec
+        spec,
+        // num angles
+        defaults::NUM_ANGLES,
+        // pre-phantom
+        PhantomJoint {
+            symmetry: UnitQuaternion::from_axis_angle(&Vector3::x_axis(), PI).to_superset(),
+            index: 0,
+            leg: Leg::Incoming,
+        },
+        // post-phantom
+        PhantomJoint {
+            symmetry: adjacent_symmetry(3, 4).to_superset(),
+            index: chain_size - 1,
+            leg: Leg::Outgoing,
+        },
+        // cost params
+        cost_params,
+        // 'return to initial' weight
+        return_to_initial_weight,
+        // descent rate
+        descent_rate,
+        // steps
+        iso_adj::Steps::new_uniform(0.000001),
+        // joints
+        spline_iter.1.collect(),
+    )
 }

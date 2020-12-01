@@ -57,9 +57,9 @@ pub mod curve_visualize {
 
     // Degenerate parameters that allow us to trace the curve.
     pub const VISUALIZE_PARAMS: CostParams = CostParams {
-        dist_weight: 0.0,
+        dist_weight: 0.5,
         axis_weight: 0.0,
-        locking_weight: 1.4,
+        locking_weight: 0.0,
         thresholds: Thresholds {
             dist_for_axis: INFINITY,
             axis_for_locking: INFINITY,
