@@ -23,8 +23,11 @@ use knot::defaults;
 use knot::defaults::continuous_optimization::{
     COST_PARAMS, MAX_REPULSION_STRENGTH, RATE, REPULSION,
     REPULSION_EXPONENT, REPULSION_STRENGTH, RETURN_TO_INITIAL_WEIGHT,
+    CONTINUOUS_PARAMS
 };
 use knot::geometries::trefoil_curve;
+use knot::geometries::from_spline;
+use knot::geometries::chinbut_spline;
 use knot::isometry_adjust;
 use knot::joint::{at_angles, RelativeJoint};
 use knot::report::{KnotGeometry, Transform};
@@ -82,14 +85,23 @@ fn main() {
             )
         }
         None => RepulsionChain::new(
-            trefoil_curve::chain(
-                3.5, // scale
-                COST_PARAMS,
+            from_spline::generic_chain(
+                4.0,
+                CONTINUOUS_PARAMS,
                 RETURN_TO_INITIAL_WEIGHT,
                 RATE,
                 defaults::joint_spec(),
+                chinbut_spline::generate_chinbutspline,
+                6,
             ),
-            symmetries(3).map(|quat| quat.to_superset()).collect(),
+            // trefoil_curve::chain(
+            //     3.5, // scale
+            //     COST_PARAMS,
+            //     RETURN_TO_INITIAL_WEIGHT,
+            //     RATE,
+            //     defaults::joint_spec(),
+            // ),
+            symmetries(6).map(|quat| quat.to_superset()).collect(),
             REPULSION_EXPONENT,
             REPULSION_STRENGTH,
             MAX_REPULSION_STRENGTH,
@@ -297,5 +309,6 @@ fn main() {
                 chain.return_to_initial();
             }
         }
+
     }
 }
