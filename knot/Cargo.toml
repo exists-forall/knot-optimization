@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["William Brandon", "Jonathan Liu"]
 
 [dependencies]
-nalgebra = "0.18.0"
+nalgebra = "0.27.1"
 alga = "0.9.0"
 approx = "0.3.2"
 rand = "0.6.5"
